@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <h1>{{ message }}</h1>
+
+    <div class="container-fluid">
+        <h1>
+            Info: {{ message2 }}
+        </h1>
+
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>Day</th>
+                <th>Morning</th>
+                <th>Lunch</th>
+                <th>Afternoon</th>
+                <th>Evening</th>
+                <th>+/-</th>
+                <th>Day OFF</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for day in days %}
+                <tr>
+                    <td><h2>{{ day.name }}</h2><span>{{ day.date }}</span></td>
+                    <td><input type="time" id="c1" class="form-control" placeholder="Select time"></td>
+                    <td><input type="time" id="c2" class="form-control" placeholder="Select time"></td>
+                    <td><input type="time" id="c3" class="form-control" placeholder="Select time"></td>
+                    <td><input type="time" id="c4" class="form-control" placeholder="Select time"></td>
+                    <td>X</td>
+                    <td>X</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <div class="container-sm">
+        <div class="row">
+            <h3>Configuration</h3>
+        </div>
+        <div class="row">
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="row">
+            <div class="col">
+                <h5>Lunch break Time (HH:mm)</h5>
+                <input id="lunchBreakTime" class="form-control" type="time" value="{{ lunchBreakTime|date('H:i')}}">
+
+                <h5>Hours to do in week (HH:mm)</h5>
+                <input id="hoursToDoWeek" class="form-control" type="time" value="{{ hoursToDoInWeek|date('H:i') }}">
+
+            </div>
+            <div class="col">
+                <h5>Exception lunch break</h5>
+                <span>Time (HH:mm): </span>
+                <input id="exceptionLunch" class="form-control" type="time" value="{{ exceptionTime|date('H:i') }}">
+                <span>Days: </span>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="Mon" {{ mon }}>
+                    <label class="form-check-label" for="Mon">
+                        Monday
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="Tue" {{ tue }}>
+                    <label class="form-check-label" for="Tue">
+                        Tuesday
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="Wed" {{ wed }}>
+                    <label class="form-check-label" for="Wed">
+                        Wednesday
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="Thu" {{ thu }}>
+                    <label class="form-check-label" for="Thu">
+                        Thursday
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="Fri" {{ fri }}>
+                    <label class="form-check-label" for="Fri">
+                        Friday
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row text-center">
+            <button id="save" class="btn btn-primary">Save</button>
+        </div>
+
+    </div>
+
+{% endblock %}
