@@ -5,12 +5,13 @@ namespace App\Controller;
 use App\Entity\Conf;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class configController extends AbstractController
 {
-    #[Route('/config')]
+    #[Route('/config', name: 'configPage')]
     public function config(EntityManagerInterface $entityManager): Response{
         // check if entry in Conf table
         $conf = $entityManager->getRepository(Conf::class)->findAll();
@@ -79,6 +80,78 @@ class configController extends AbstractController
                 'fri' => $fri,
             ]);
         }
+
+    }
+
+
+    #[Route('/config/save', name: 'config_save')]
+    public function save(EntityManagerInterface $entityManager, Request $request): Response{
+        // get POST data
+        $lunchBreakTime = $request->request->get('lunchBreakTime');
+        $h_hoursToDoInWeek = $request->request->get('h_hoursToDoInWeek');
+        $m_hoursToDoInWeek = $request->request->get('m_hoursToDoInWeek');
+        $hoursToDoInWeek = $h_hoursToDoInWeek . ":" . $m_hoursToDoInWeek.":00";
+        $exceptionTime = $request->request->get('exceptionTime');
+        $mon = $request->request->get('mon');
+        $tue = $request->request->get('tue');
+        $wed = $request->request->get('wed');
+        $thu = $request->request->get('thu');
+        $fri = $request->request->get('fri');
+
+        $exceptionDays = "";
+        if (!is_null($mon)){
+            $exceptionDays .= "Mon;";
+        }
+        if (!is_null($tue)){
+            $exceptionDays .= "Tue;";
+        }
+        if (!is_null($wed)){
+            $exceptionDays .= "Wed;";
+        }
+        if (!is_null($thu)){
+            $exceptionDays .= "Thu;";
+        }
+        if (!is_null($fri)){
+            $exceptionDays .= "Fri;";
+        }
+
+        // check if entry in Conf table
+        $conf = $entityManager->getRepository(Conf::class)->findAll();
+        if (!$conf){
+            // create new entry
+            $config = new Conf();
+            $config->setTimeLunchBreak(new \DateTime($lunchBreakTime));
+            $config->setTimeHoursToDoWeek($hoursToDoInWeek);
+            $config->setTimeException(new \DateTime($exceptionTime));
+            $config->setDaysException($exceptionDays);
+            $entityManager->persist($config);
+            $entityManager->flush();
+            $this->addFlash('success', 'Configuration saved!');
+
+        }
+        else{
+            // update existing entry
+            $conf[0]->setTimeLunchBreak(new \DateTime($lunchBreakTime));
+            $conf[0]->setTimeHoursToDoWeek($hoursToDoInWeek);
+            $conf[0]->setTimeException(new \DateTime($exceptionTime));
+            $conf[0]->setDaysException($exceptionDays);
+            $entityManager->flush();
+            $this->addFlash('success', 'Configuration saved!');
+
+        }
+        return $this->redirectToRoute('configPage');
+//        return $this->render('config/config.html.twig', [
+//            'config' => 1,
+//            'lunchBreakTime' => $lunchBreakTime,
+//            'hoursToDoInWeek' => $hoursToDoInWeek,
+//            'exceptionTime' => $exceptionTime,
+//            'mon' => $mon,
+//            'tue' => $tue,
+//            'wed' => $wed,
+//            'thu' => $thu,
+//            'fri' => $fri,
+//        ]);
+
 
     }
 

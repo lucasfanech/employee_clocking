@@ -23,8 +23,8 @@ class Conf
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $days_exception = null;
 
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $time_hoursToDoWeek = null;
+    #[ORM\Column(length: 255)]
+    private ?string $time_hoursToDoWeek = null;
 
     public function getId(): ?int
     {
@@ -67,12 +67,12 @@ class Conf
         return $this;
     }
 
-    public function getTimeHoursToDoWeek(): ?\DateTimeInterface
+    public function getTimeHoursToDoWeek(): ?string
     {
         return $this->time_hoursToDoWeek;
     }
 
-    public function setTimeHoursToDoWeek(\DateTimeInterface $time_hoursToDoWeek): self
+    public function setTimeHoursToDoWeek(?string $time_hoursToDoWeek): self
     {
         $this->time_hoursToDoWeek = $time_hoursToDoWeek;
 
