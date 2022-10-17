@@ -18,6 +18,7 @@
                 <th>Afternoon</th>
                 <th>Evening</th>
                 <th>+/-</th>
+                <th>Cumulated</th>
                 <th>Day OFF</th>
             </tr>
             </thead>
@@ -32,8 +33,9 @@
                         <td><input type="time" id="c2_{{ loop.index0 }}" name="c2_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Lunch }}"></td>
                         <td><input type="time" id="c3_{{ loop.index0 }}" name="c3_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Afternoon }}"></td>
                         <td><input type="time" id="c4_{{ loop.index0 }}" name="c4_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Evening }}"></td>
-                        <td>X</td>
-                        <td>X</td>
+                        <td id="timeLeft_{{ loop.index0 }}">X</td>
+                        <td id="cumulated_{{ loop.index0 }}">X</td>
+                        <td id="dayOff_{{ loop.index0 }}">X</td>
                     </tr>
                 {% endfor %}
 
@@ -47,5 +49,208 @@
                 {{ message }}
             </div>
         {% endfor %}
+        <div class="alert-success" id="dump"></div>
     </div>
+
+    <script>
+        // twig
+        var days = {{ exceptionDays|json_encode|raw }};
+        var lunchBreakTime = "{{ lunchBreakTime|date('H:i') }}";
+        var hoursToDoInWeek = "{{ hoursToDoInWeek }}";
+        var exceptionTime = "{{ exceptionTime|date('H:i') }}";
+
+        // on load
+        $(document).ready(function() {
+            for (var i = 0; i < days.length; i++) {
+                calculateTime(i, hoursToDoInWeek, lunchBreakTime, days[i], exceptionTime);
+            }
+
+            // get all the inputs starting with "c"
+            for (var da = 0; da < days.length; da++) {
+
+                // get inputs finishing with "_d"
+                var inputs = document.querySelectorAll('input[id^="c"][id$="_' + da + '"]');
+                for (var j = 0; j < inputs.length; j++) {
+                    console.log('input id: ' + inputs[j].id + ' attribution jour '+ da);
+                    inputs[j].addEventListener('change', function() {
+                        calculateTime(da, hoursToDoInWeek, lunchBreakTime, days[da], exceptionTime);
+                    });
+                }
+
+            }
+        });
+
+
+
+
+
+
+
+
+
+        // add event listener to each input
+        // for (var i = 0; i < inputs.length; i++) {
+        //     inputs[i].addEventListener('change', function() {
+        //         var id = this.id;
+        //         var idArray = id.split("_");
+        //         var day = idArray[1];
+        //         calculateTime(day, "38:30", "01:00", 0, "00:45");
+        //     });
+        // }
+
+
+
+        // // on change on c1, c2, c3, c4
+        // c1_0.addEventListener("change", function() {
+        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
+        // });
+        // c2_0.addEventListener("change", function() {
+        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
+        // });
+        // c3_0.addEventListener("change", function() {
+        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
+        // });
+        // c4_0.addEventListener("change", function() {
+        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
+        // });
+        // c1_1.addEventListener("change", function() {
+        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
+        // });
+        // c2_1.addEventListener("change", function() {
+        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
+        // });
+        // c3_1.addEventListener("change", function() {
+        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
+        // });
+        // c4_1.addEventListener("change", function() {
+        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
+        // });
+        // c1_2.addEventListener("change", function() {
+        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
+        // });
+        // c2_2.addEventListener("change", function() {
+        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
+        // });
+        // c3_2.addEventListener("change", function() {
+        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
+        // });
+        // c4_2.addEventListener("change", function() {
+        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
+        // });
+        // c1_3.addEventListener("change", function() {
+        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
+        // });
+        // c2_3.addEventListener("change", function() {
+        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
+        // });
+        // c3_3.addEventListener("change", function() {
+        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
+        // });
+        // c4_3.addEventListener("change", function() {
+        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
+        // });
+        // c1_4.addEventListener("change", function() {
+        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
+        // });
+        // c2_4.addEventListener("change", function() {
+        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
+        // });
+        // c3_4.addEventListener("change", function() {
+        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
+        // });
+        // c4_4.addEventListener("change", function() {
+        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
+        // });
+
+
+
+        function calculateTime(day, toDoWeek, lunchBreakTime, exceptionWeek, exceptionTime) {
+            // convert lunchBreakTime to minutes
+            lunchBreakTime = lunchBreakTime.split(":");
+            lunchBreakTime = parseInt(lunchBreakTime[0]) * 60 + parseInt(lunchBreakTime[1]);
+            // convert exceptionTime to minutes
+            exceptionTime = exceptionTime.split(":");
+            exceptionTime = parseInt(exceptionTime[0]) * 60 + parseInt(exceptionTime[1]);
+
+            console.log('day: ' + day);
+
+
+
+
+
+            // get the values of c1, c2, c3, c4
+            var c1 = document.getElementById("c1_"+day).value;
+            var c2 = document.getElementById("c2_"+day).value;
+            var c3 = document.getElementById("c3_"+day).value;
+            var c4 = document.getElementById("c4_"+day).value;
+
+            // if c1, c2, c3, c4 are not empty
+            if (c1 != "" && c2 != "" && c3 != "" && c4 != "") {
+
+                // convert the values of c1, c2, c3, c4 to minutes
+                c1 = c1.split(":");
+                c2 = c2.split(":");
+                c3 = c3.split(":");
+                c4 = c4.split(":");
+                var c1Minutes = parseInt(c1[0]) * 60 + parseInt(c1[1]);
+                var c2Minutes = parseInt(c2[0]) * 60 + parseInt(c2[1]);
+                var c3Minutes = parseInt(c3[0]) * 60 + parseInt(c3[1]);
+                var c4Minutes = parseInt(c4[0]) * 60 + parseInt(c4[1]);
+
+
+                // toDoDay = toDoWeek / 5
+                //TO DO: check if the day is off, count the number of days off in the week
+                // convert toDoWeek to minutes
+                toDoWeek = toDoWeek.split(":");
+                toDoWeek = (+toDoWeek[0]) * 60 + (+toDoWeek[1]);
+
+                var toDoDay = toDoWeek / 5;
+
+                // calculate the time left
+                var timeLeft = (c4Minutes - c3Minutes) + (c2Minutes - c1Minutes) - toDoDay;
+
+
+                // if exceptionWeek = 1, timeLeft = timeLeft - (exceptionTime - (c3Minutes - c2Minutes));
+                    // if afternoon - lunch < lunchBreakTime, timeLeft = timeLeft + lunchBreakTime - (c3Minutes - c2Minutes)
+                if (exceptionWeek == 1) {
+                    if ((c3Minutes - c2Minutes) < exceptionTime) {
+                        timeLeft = timeLeft - (exceptionTime - (c3Minutes - c2Minutes));
+                    }
+
+                } else {
+                    if ((c3Minutes - c2Minutes) < lunchBreakTime) {
+                        timeLeft = timeLeft - (lunchBreakTime - (c3Minutes - c2Minutes));
+                    }
+                }
+
+
+
+                // convert timeLeft to HH:MM format
+                var timeLeftHours = timeLeft / 60;
+                var rtimeLeftHours = Math.floor(timeLeftHours);
+                var timeLeftMinutes = (timeLeftHours - rtimeLeftHours) * 60;
+                var rtimeLeftMinutes = Math.round(timeLeftMinutes);
+
+                if (rtimeLeftHours  < 0) {
+                    rtimeLeftHours = rtimeLeftHours + 1;
+                    rtimeLeftMinutes = 60 - rtimeLeftMinutes;
+                }
+                if (rtimeLeftMinutes < 10) {
+                    rtimeLeftMinutes = "0" + rtimeLeftMinutes;
+                }
+                if (timeLeft < 0) {
+                    if (rtimeLeftHours === 0) {
+                        rtimeLeftHours = "-" + rtimeLeftHours;
+                    }
+
+                }
+                timeLeft = rtimeLeftHours + ":" + rtimeLeftMinutes;
+
+                // display the time left
+                document.getElementById("timeLeft_"+day).innerHTML = timeLeft;
+
+            }
+
+        }
+    </script>
 {% endblock %}

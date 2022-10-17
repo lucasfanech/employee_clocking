@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Clocking;
+use App\Entity\Conf;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -61,6 +62,40 @@ class clockingController extends AbstractController
 
                 }
 
+                // get configuration
+                $conf = $entityManager->getRepository(Conf::class)->findAll();
+                if (!$conf){
+                    $config = 0;
+                    $this->addFlash('error', 'Missing configuration!');
+                    $entityManager->flush();
+                    return $this->render('config/config.html.twig', [
+                        'config' => $config,
+                    ]);
+                }
+                else{
+                    $config = 1;
+                    $lunchBreakTime = $conf[0]->getTimeLunchBreak();
+                    $hoursToDoInWeek = $conf[0]->getTimeHoursToDoWeek();
+                    $exceptionTime = $conf[0]->getTimeException();
+                    $exceptionDays = $conf[0]->getDaysException();
+                    // convert to array by separating by ";" and remove empty values
+                    $exceptionDays = array_filter(explode(";", $exceptionDays));
+                    $weekDays = array("Mon", "Tue", "Wed", "Thu", "Fri");
+                    $days_array = array();
+                    for ($i = 0; $i < 5; $i++){
+                        foreach ($exceptionDays as $exceptionDay){
+                            if ($exceptionDay == $weekDays[$i]){
+                                $days_array[$i] = 1;
+                            }else{
+                                $days_array[$i] = 0;
+                            }
+                        }
+                    }
+
+
+
+                }
+
 
             }
 
@@ -73,6 +108,12 @@ class clockingController extends AbstractController
             'week' => $week,
             'days' => $days,
             'year' => $year,
+            'config' => $config,
+            'lunchBreakTime' => $lunchBreakTime,
+            'hoursToDoInWeek' => $hoursToDoInWeek,
+            'exceptionTime' => $exceptionTime,
+            'exceptionDays' => $days_array,
+
         ]);
 
     }
