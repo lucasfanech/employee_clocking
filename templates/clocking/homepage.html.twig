@@ -143,31 +143,8 @@
                     }
                 }
 
-
-
-                // convert timeLeft to HH:MM format
-                var timeLeftHours = timeLeft / 60;
-                var rtimeLeftHours = Math.floor(timeLeftHours);
-                var timeLeftMinutes = (timeLeftHours - rtimeLeftHours) * 60;
-                var rtimeLeftMinutes = Math.round(timeLeftMinutes);
-
-                if (rtimeLeftHours  < 0) {
-                    rtimeLeftHours = rtimeLeftHours + 1;
-                    rtimeLeftMinutes = 60 - rtimeLeftMinutes;
-                }
-                if (rtimeLeftMinutes < 10) {
-                    rtimeLeftMinutes = "0" + rtimeLeftMinutes;
-                }
-                if (timeLeft < 0) {
-                    if (rtimeLeftHours === 0) {
-                        rtimeLeftHours = "-" + rtimeLeftHours;
-                    }
-
-                }
-                timeLeft = rtimeLeftHours + ":" + rtimeLeftMinutes;
-
-                // display the time left
-                document.getElementById("timeLeft_"+day).innerHTML = timeLeft;
+                // convert timeLeft to HH:MM format and display the time left
+                document.getElementById("timeLeft_"+day).innerHTML = convertMinToTime(timeLeft);
 
             }
 
@@ -175,34 +152,58 @@
             // ---- Cumulated
 
             // get the values of timeLeft_0, timeLeft_1, timeLeft_2, timeLeft_3, timeLeft_4 split them into hours and minutes
-            // var getTimeLeft = array();
-            // var cumulatedTimeLeft = 0;
-            // for (var i = 0; i < 5; i++) {
-            //
-            //     var timeLeft = document.getElementById("timeLeft_"+i).innerHTML;
-            //     if (timeLeft != "" && timeLeft != "X") {
-            //         timeLeft = timeLeft.split(":");
-            //         var timeLeftHours = parseInt(timeLeft[0]);
-            //         var timeLeftMinutes = parseInt(timeLeft[1]);
-            //         if (timeLeftHours < 0) {
-            //             timeLeftMinutes = timeLeftMinutes * -1;
-            //         }
-            //         getTimeLeft[i] = timeLeftHours * 60 + timeLeftMinutes;
-            //         cumulatedTimeLeft = cumulatedTimeLeft + getTimeLeft[i];
-            //
-            //         document.getElementById("cumulated_"+i).innerHTML = cumulatedTimeLeft;
-            //
-            //
-            //     }
-            // }
+            var getTimeLeft = [];
+            var cumulatedTimeLeft = 0;
+            for (var i = 0; i < 5; i++) {
+
+                var timeLeft = document.getElementById("timeLeft_"+i).innerHTML;
+                if (timeLeft != "" && timeLeft != "X") {
+                    // check if "-" is present in timeLeft
+                    var negative = false;
+                    if (timeLeft.indexOf("-") > -1) {
+                        // if yes, remove it
+                        negative = true;
+                    }
+
+                    timeLeft = timeLeft.split(":");
+                    var timeLeftHours = parseInt(timeLeft[0]);
+                    var timeLeftMinutes = parseInt(timeLeft[1]);
+                    if (negative) {
+                        timeLeftMinutes = timeLeftMinutes * -1;
+                    }
+                    getTimeLeft[i] = timeLeftHours * 60 + timeLeftMinutes;
+                    cumulatedTimeLeft = cumulatedTimeLeft + getTimeLeft[i];
+
+                    document.getElementById("cumulated_"+i).innerHTML = convertMinToTime(cumulatedTimeLeft);
 
 
+                }
+            }
 
+        }
 
+        // convert minutes to Time HH:MM format
+        function convertMinToTime(timeLeft){
+            var timeLeftHours = timeLeft / 60;
+            var rtimeLeftHours = Math.floor(timeLeftHours);
+            var timeLeftMinutes = (timeLeftHours - rtimeLeftHours) * 60;
+            var rtimeLeftMinutes = Math.round(timeLeftMinutes);
 
+            if (rtimeLeftHours  < 0) {
+                rtimeLeftHours = rtimeLeftHours + 1;
+                rtimeLeftMinutes = 60 - rtimeLeftMinutes;
+            }
+            if (rtimeLeftMinutes < 10) {
+                rtimeLeftMinutes = "0" + rtimeLeftMinutes;
+            }
+            if (timeLeft < 0) {
+                if (rtimeLeftHours === 0) {
+                    rtimeLeftHours = "-" + rtimeLeftHours;
+                }
 
-
-
+            }
+            var out = rtimeLeftHours + ":" + rtimeLeftMinutes;
+            return out;
         }
 
 
