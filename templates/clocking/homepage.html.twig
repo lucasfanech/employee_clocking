@@ -73,94 +73,14 @@
                 for (var j = 0; j < inputs.length; j++) {
                     console.log('input id: ' + inputs[j].id + ' attribution jour '+ da);
                     inputs[j].addEventListener('change', function() {
-                        calculateTime(da, hoursToDoInWeek, lunchBreakTime, days[da], exceptionTime);
+                        var id = this.id;
+                        var day = id.substr(id.length - 1);
+                        calculateTime(day, hoursToDoInWeek, lunchBreakTime, days[day], exceptionTime);
                     });
                 }
 
             }
         });
-
-
-
-
-
-
-
-
-
-        // add event listener to each input
-        // for (var i = 0; i < inputs.length; i++) {
-        //     inputs[i].addEventListener('change', function() {
-        //         var id = this.id;
-        //         var idArray = id.split("_");
-        //         var day = idArray[1];
-        //         calculateTime(day, "38:30", "01:00", 0, "00:45");
-        //     });
-        // }
-
-
-
-        // // on change on c1, c2, c3, c4
-        // c1_0.addEventListener("change", function() {
-        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
-        // });
-        // c2_0.addEventListener("change", function() {
-        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
-        // });
-        // c3_0.addEventListener("change", function() {
-        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
-        // });
-        // c4_0.addEventListener("change", function() {
-        //     calculateTime(0, "38:30", "01:00", 0, "00:45");
-        // });
-        // c1_1.addEventListener("change", function() {
-        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
-        // });
-        // c2_1.addEventListener("change", function() {
-        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
-        // });
-        // c3_1.addEventListener("change", function() {
-        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
-        // });
-        // c4_1.addEventListener("change", function() {
-        //     calculateTime(1, "38:30", "01:00", 0, "00:45");
-        // });
-        // c1_2.addEventListener("change", function() {
-        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
-        // });
-        // c2_2.addEventListener("change", function() {
-        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
-        // });
-        // c3_2.addEventListener("change", function() {
-        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
-        // });
-        // c4_2.addEventListener("change", function() {
-        //     calculateTime(2, "38:30", "01:00", 0, "00:45");
-        // });
-        // c1_3.addEventListener("change", function() {
-        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
-        // });
-        // c2_3.addEventListener("change", function() {
-        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
-        // });
-        // c3_3.addEventListener("change", function() {
-        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
-        // });
-        // c4_3.addEventListener("change", function() {
-        //     calculateTime(3, "38:30", "01:00", 0, "00:45");
-        // });
-        // c1_4.addEventListener("change", function() {
-        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
-        // });
-        // c2_4.addEventListener("change", function() {
-        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
-        // });
-        // c3_4.addEventListener("change", function() {
-        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
-        // });
-        // c4_4.addEventListener("change", function() {
-        //     calculateTime(4, "38:30", "01:00", 1, "00:45");
-        // });
 
 
 
@@ -251,6 +171,41 @@
 
             }
 
+
+            // ---- Cumulated
+
+            // get the values of timeLeft_0, timeLeft_1, timeLeft_2, timeLeft_3, timeLeft_4 split them into hours and minutes
+            // var getTimeLeft = array();
+            // var cumulatedTimeLeft = 0;
+            // for (var i = 0; i < 5; i++) {
+            //
+            //     var timeLeft = document.getElementById("timeLeft_"+i).innerHTML;
+            //     if (timeLeft != "" && timeLeft != "X") {
+            //         timeLeft = timeLeft.split(":");
+            //         var timeLeftHours = parseInt(timeLeft[0]);
+            //         var timeLeftMinutes = parseInt(timeLeft[1]);
+            //         if (timeLeftHours < 0) {
+            //             timeLeftMinutes = timeLeftMinutes * -1;
+            //         }
+            //         getTimeLeft[i] = timeLeftHours * 60 + timeLeftMinutes;
+            //         cumulatedTimeLeft = cumulatedTimeLeft + getTimeLeft[i];
+            //
+            //         document.getElementById("cumulated_"+i).innerHTML = cumulatedTimeLeft;
+            //
+            //
+            //     }
+            // }
+
+
+
+
+
+
+
+
         }
+
+
+
     </script>
 {% endblock %}
