@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Clocking;
 use App\Entity\Conf;
+use App\Entity\DayOff;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -96,6 +97,20 @@ class clockingController extends AbstractController
 
                 }
 
+                // Days off
+                $daysOff = $entityManager->getRepository(DayOff::class)->findBy(array('week_ref' => $year.$week));
+                $daysOff_array = array();
+                for ($i = 0; $i < 5; $i++){
+                    $daysOff_array[$i] = 0;
+                }
+                foreach ($daysOff as $dayOff){
+                    for ($i = 0; $i < 5; $i++){
+                        if ($dayOff->getDay() == $i){
+                            $daysOff_array[$i] = 1;
+                        }
+                    }
+                }
+
 
             }
 
@@ -113,6 +128,7 @@ class clockingController extends AbstractController
             'hoursToDoInWeek' => $hoursToDoInWeek,
             'exceptionTime' => $exceptionTime,
             'exceptionDays' => $days_array,
+            'daysOff' => $daysOff_array,
 
         ]);
 
@@ -204,7 +220,37 @@ class clockingController extends AbstractController
         return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
     }
 
+    #[Route('/home/dayoff/{year}/{week}', name: 'dayOff')]
+    public function dayOff(EntityManagerInterface $entityManager, Request $request, string $year = null, string $week = null): Response{
+        $day = $request->request->get('dayOffBtn');
+        $arrayDays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
 
+
+        $clocking = $entityManager->getRepository(Clocking::class)->findBy(['week_ref' => $year.$week, 'day' => $arrayDays[$day]]);
+        if ($clocking){
+            // drop all data with week_ref = $year.$week
+            foreach ($clocking as $clock){
+                $entityManager->remove($clock);
+            }
+        }
+        // look into dayoff table if already exist a dayoff for this week and this day
+        $dayOff = $entityManager->getRepository(DayOff::class)->findOneBy(['week_ref' => $year.$week, 'day' => $day]);
+        if ($dayOff){
+            // drop all data with week_ref = $year.$week
+            $entityManager->remove($dayOff);
+
+        }else{
+            // insert new data with week_ref = $year.$week annd day = $day in day_off table
+            $dayOff = new DayOff();
+            $dayOff->setWeekRef($year.$week);
+            $dayOff->setDay($day);
+            $entityManager->persist($dayOff);
+        }
+
+        $entityManager->flush();
+        return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
+
+    }
 
     #[Route('/calendar')]
     public function calendar(): Response{

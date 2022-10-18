@@ -1,55 +1,121 @@
 {% extends 'base.html.twig' %}
 {% block body %}
-    <h1>{{ message }}</h1>
+
 
     <div class="container-fluid">
-        <h1>
-            Info: {{ message2 }}
-        </h1>
-        <a href="{{ path('home',{'year': year, 'week': week-1}) }}">Previous week</a>
-        <a href="{{ path('home',{'year': year, 'week': week+1}) }}">Next week</a>
-        <form action="{{ path('clocking_save',{'year':year ,'week': week }) }}" method="POST">
-        <table class="table table-striped table-hover">
-            <thead>
-            <tr>
-                <th>Day</th>
-                <th>Morning</th>
-                <th>Lunch</th>
-                <th>Afternoon</th>
-                <th>Evening</th>
-                <th>+/-</th>
-                <th>Cumulated</th>
-                <th>Day OFF</th>
-            </tr>
-            </thead>
+        <div class="row">
+            <div class="col-xl-9">
+                <h5>
+                    {{ message2 }}
+                </h5>
 
-            <tbody>
+                <form id="saveForm" action="{{ path('clocking_save',{'year':year ,'week': week }) }}" method="POST"></form>
+                <form id="dayOffForm" action="{{ path('dayOff', {'year': year, 'week': week }) }}" method="POST"></form>
 
-
-                {% for day in days %}
+                <table class="table table-striped table-hover">
+                    <thead>
                     <tr>
-                        <td><h2>{{ day.name }}</h2><span>{{ day.date }}</span></td>
-                        <td><input type="time" id="c1_{{ loop.index0 }}" name="c1_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Morning }}"></td>
-                        <td><input type="time" id="c2_{{ loop.index0 }}" name="c2_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Lunch }}"></td>
-                        <td><input type="time" id="c3_{{ loop.index0 }}" name="c3_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Afternoon }}"></td>
-                        <td><input type="time" id="c4_{{ loop.index0 }}" name="c4_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Evening }}"></td>
-                        <td id="timeLeft_{{ loop.index0 }}">X</td>
-                        <td id="cumulated_{{ loop.index0 }}">X</td>
-                        <td id="dayOff_{{ loop.index0 }}">X</td>
+                        <th>Day</th>
+                        <th>Morning</th>
+                        <th>Lunch</th>
+                        <th>Afternoon</th>
+                        <th>Evening</th>
+                        <th>+/-</th>
+                        <th>Cumulated</th>
+                        <th>Day OFF</th>
                     </tr>
+                    </thead>
+
+                    <tbody>
+
+
+                    {% for day in days %}
+                        {% if daysOff[loop.index0] == 0 %}
+                            <tr id="tr_{{ loop.index0 }}">
+                                <td><h2>{{ day.name }}</h2><span>{{ day.date }}</span></td>
+                                <td><input form="saveForm" type="time" id="c1_{{ loop.index0 }}" name="c1_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Morning }}"></td>
+                                <td><input form="saveForm" type="time" id="c2_{{ loop.index0 }}" name="c2_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Lunch }}"></td>
+                                <td><input form="saveForm" type="time" id="c3_{{ loop.index0 }}" name="c3_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Afternoon }}"></td>
+                                <td><input form="saveForm" type="time" id="c4_{{ loop.index0 }}" name="c4_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Evening }}"></td>
+                                <td id="timeLeft_{{ loop.index0 }}">X</td>
+                                <td id="cumulated_{{ loop.index0 }}">X</td>
+                                <td>
+                                    <button form="dayOffForm" type="submit" id="dayOff_{{ loop.index0 }}" name="dayOffBtn" value="{{ loop.index0 }}" class="btn btn-outline-danger" >
+                                        <i class="fa-solid fa-calendar-xmark"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+                        {% elseif daysOff[loop.index0] == 1 %}
+                            <tr class="table-dark" id="tr_{{ loop.index0 }}">
+                                <td><h2>{{ day.name }}</h2><span>{{ day.date }}</span> | <span><span class="badge text-bg-warning">Day OFF</span></td>
+                                <td><input form="saveForm" type="time" id="c1_{{ loop.index0 }}" name="c1_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Morning }}" disabled></td>
+                                <td><input form="saveForm" type="time" id="c2_{{ loop.index0 }}" name="c2_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Lunch }}" disabled></td>
+                                <td><input form="saveForm" type="time" id="c3_{{ loop.index0 }}" name="c3_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Afternoon }}" disabled></td>
+                                <td><input form="saveForm" type="time" id="c4_{{ loop.index0 }}" name="c4_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Evening }}" disabled></td>
+                                <td id="timeLeft_{{ loop.index0 }}">X</td>
+                                <td id="cumulated_{{ loop.index0 }}">X</td>
+                                <td>
+                                    <button form="dayOffForm" type="submit" id="dayOff_{{ loop.index0 }}" name="dayOffBtn" value="{{ loop.index0 }}" class="btn btn-outline-warning" >
+                                        <i class="fa-solid fa-calendar-plus"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+                        {% endif %}
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                <button form="saveForm" class="btn btn-primary" type="submit" name="submit">Save</button>
+
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
                 {% endfor %}
-
-            </tbody>
-
-        </table>
-            <button class="btn btn-primary" type="submit" name="submit">Save</button>
-        </form>
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">
-                {{ message }}
+                <div class="alert-success" id="dump"></div>
             </div>
-        {% endfor %}
-        <div class="alert-success" id="dump"></div>
+            <div class="col-xl ">
+                <div class="card text-bg-light " >
+                    <div class="card-header text-center">
+                        <h3>
+                            <a href="{{ path('home',{'year': year, 'week': week-1}) }}"><i class="fa-solid fa-angles-left"></i></a>
+                            {{ message }}
+                            <a href="{{ path('home',{'year': year, 'week': week+1}) }}"><i class="fa-solid fa-angles-right"></i></a>
+
+
+                        </h3>
+                        </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title">End of the day</h5>
+                        <div class="btn-group">
+                            <a class="btn btn-primary active">HH:mm </a>
+                            <a class="btn btn-primary">HH:mm
+
+                                <div class="badge bg-black text-wrap" style="width: 6rem;">
+                                    Cumulated
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer ">
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/config">
+                                <i class="fa-solid fa-gear"></i>
+                            </a>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -205,6 +271,8 @@
             var out = rtimeLeftHours + ":" + rtimeLeftMinutes;
             return out;
         }
+
+
 
 
 
