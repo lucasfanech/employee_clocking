@@ -14,8 +14,32 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class clockingController extends AbstractController
 {
+    #[Route('/', name: 'index')]
+    public function home(): Response
+    {
+        $year = date('Y');
+        $week = date('W');
+        return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
+    }
+
+
     #[Route('/home/{year}/{week}', name: 'home')]
     public function homepage(string $year = null, string $week = null, EntityManagerInterface $entityManager): Response{
+        if ($week == 0){
+            $week = 52;
+            $year = $year - 1;
+            return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
+        }
+        // if week contains 0 before, remove it
+        if (substr($week, 0, 1) == "0"){
+            $week = substr($week, 1);
+        }
+        if ($week > 52){
+            $week = $week - 52;
+            $year = $year + 1;
+            return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
+        }
+
         $message = "";
         $message2 = "";
         $days = array();
@@ -112,9 +136,17 @@ class clockingController extends AbstractController
                 }
 
 
+            }else{
+                $year = date('Y');
+                $week = date('W');
+                return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
             }
 
 
+        }else{
+            $year = date('Y');
+            $week = date('W');
+            return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
         }
         return $this->render('clocking/homepage.html.twig', [
             'title' => 'Clocking',
@@ -144,26 +176,29 @@ class clockingController extends AbstractController
         $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
         $daysData = array();
         for ($i = 0; $i < 5; $i++){
-            if ($data['c1_'.$i] != ""){
-                $daysData[$i]['Morning'] = new DateTime($data['c1_'.$i]);
-            }else{
-                $daysData[$i]['Morning'] = null;
+            if (isset($data['c1_'.$i])){
+                if ($data['c1_'.$i] != ""){
+                    $daysData[$i]['Morning'] = new DateTime($data['c1_'.$i]);
+                }else{
+                    $daysData[$i]['Morning'] = null;
+                }
+                if ($data['c2_'.$i] != ""){
+                    $daysData[$i]['Lunch'] = new DateTime($data['c2_'.$i]);
+                }else{
+                    $daysData[$i]['Lunch'] = null;
+                }
+                if ($data['c3_'.$i] != ""){
+                    $daysData[$i]['Afternoon'] = new DateTime($data['c3_'.$i]);
+                }else{
+                    $daysData[$i]['Afternoon'] = null;
+                }
+                if ($data['c4_'.$i] != ""){
+                    $daysData[$i]['Evening'] = new DateTime($data['c4_'.$i]);
+                }else{
+                    $daysData[$i]['Evening'] = null;
+                }
             }
-            if ($data['c2_'.$i] != ""){
-                $daysData[$i]['Lunch'] = new DateTime($data['c2_'.$i]);
-            }else{
-                $daysData[$i]['Lunch'] = null;
-            }
-            if ($data['c3_'.$i] != ""){
-                $daysData[$i]['Afternoon'] = new DateTime($data['c3_'.$i]);
-            }else{
-                $daysData[$i]['Afternoon'] = null;
-            }
-            if ($data['c4_'.$i] != ""){
-                $daysData[$i]['Evening'] = new DateTime($data['c4_'.$i]);
-            }else{
-                $daysData[$i]['Evening'] = null;
-            }
+
         }
 
         // SAVE DATA
@@ -177,40 +212,41 @@ class clockingController extends AbstractController
         }
         // insert new data with week_ref = $year.$week and days data FOR EACH DAY OF THE WEEK
         for ($i = 0; $i < 5; $i++){
-            // insert new data Monday
-            if ($daysData[$i]['Morning'] != null){
-                $clock = new Clocking();
-                $clock->setWeekRef($year.$week);
-                $clock->setDay($days[$i]);
-                $clock->setPartOfDay('Morning');
-                $clock->setClockingHour($daysData[$i]['Morning']);
-                $entityManager->persist($clock);
+            if (isset($daysData[$i])){
+                // insert new data Monday
+                if ($daysData[$i]['Morning'] != null){
+                    $clock = new Clocking();
+                    $clock->setWeekRef($year.$week);
+                    $clock->setDay($days[$i]);
+                    $clock->setPartOfDay('Morning');
+                    $clock->setClockingHour($daysData[$i]['Morning']);
+                    $entityManager->persist($clock);
+                }
+                if ($daysData[$i]['Lunch'] != null){
+                    $clock = new Clocking();
+                    $clock->setWeekRef($year.$week);
+                    $clock->setDay($days[$i]);
+                    $clock->setPartOfDay('Lunch');
+                    $clock->setClockingHour($daysData[$i]['Lunch']);
+                    $entityManager->persist($clock);
+                }
+                if ($daysData[$i]['Afternoon'] != null){
+                    $clock = new Clocking();
+                    $clock->setWeekRef($year.$week);
+                    $clock->setDay($days[$i]);
+                    $clock->setPartOfDay('Afternoon');
+                    $clock->setClockingHour($daysData[$i]['Afternoon']);
+                    $entityManager->persist($clock);
+                }
+                if ($daysData[$i]['Evening'] != null){
+                    $clock = new Clocking();
+                    $clock->setWeekRef($year.$week);
+                    $clock->setDay($days[$i]);
+                    $clock->setPartOfDay('Evening');
+                    $clock->setClockingHour($daysData[$i]['Evening']);
+                    $entityManager->persist($clock);
+                }
             }
-            if ($daysData[$i]['Lunch'] != null){
-                $clock = new Clocking();
-                $clock->setWeekRef($year.$week);
-                $clock->setDay($days[$i]);
-                $clock->setPartOfDay('Lunch');
-                $clock->setClockingHour($daysData[$i]['Lunch']);
-                $entityManager->persist($clock);
-            }
-            if ($daysData[$i]['Afternoon'] != null){
-                $clock = new Clocking();
-                $clock->setWeekRef($year.$week);
-                $clock->setDay($days[$i]);
-                $clock->setPartOfDay('Afternoon');
-                $clock->setClockingHour($daysData[$i]['Afternoon']);
-                $entityManager->persist($clock);
-            }
-            if ($daysData[$i]['Evening'] != null){
-                $clock = new Clocking();
-                $clock->setWeekRef($year.$week);
-                $clock->setDay($days[$i]);
-                $clock->setPartOfDay('Evening');
-                $clock->setClockingHour($daysData[$i]['Evening']);
-                $entityManager->persist($clock);
-            }
-
         }
 
         $entityManager->flush();
@@ -252,7 +288,7 @@ class clockingController extends AbstractController
 
     }
 
-    #[Route('/calendar')]
+    #[Route('/calendar', name: 'calendar')]
     public function calendar(): Response{
         return $this->render('clocking/calendar.html.twig', [
         ]);
