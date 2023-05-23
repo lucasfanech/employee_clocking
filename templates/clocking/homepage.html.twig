@@ -94,7 +94,7 @@
                     <div class="card-body">
                         <h5 class="card-title">End of the day</h5>
                         <div class="btn-group">
-                            <a class="btn btn-primary active">HH:mm </a>
+                            <a id="endOfDay" class="btn btn-primary active">HH:mm </a>
                             <a class="btn btn-primary">HH:mm
 
                                 <div class="badge bg-black text-wrap" style="width: 6rem;">
@@ -124,13 +124,14 @@
         var lunchBreakTime = "{{ lunchBreakTime|date('H:i') }}";
         var hoursToDoInWeek = "{{ hoursToDoInWeek }}";
         var exceptionTime = "{{ exceptionTime|date('H:i') }}";
+        var week = "{{ week }}";
 
         // on load
         $(document).ready(function() {
             for (var i = 0; i < days.length; i++) {
                 calculateTime(i, hoursToDoInWeek, lunchBreakTime, days[i], exceptionTime);
             }
-
+            endOfTheDay(week, lunchBreakTime, days, exceptionTime);
             // get all the inputs starting with "c"
             for (var da = 0; da < days.length; da++) {
 
@@ -142,13 +143,57 @@
                         var id = this.id;
                         var day = id.substr(id.length - 1);
                         calculateTime(day, hoursToDoInWeek, lunchBreakTime, days[day], exceptionTime);
+                        endOfTheDay(week, lunchBreakTime, days[day], exceptionTime);
                     });
                 }
 
             }
         });
 
+        function endOfTheDay(week, lunchBreakTime, exceptionWeek, exceptionTime){
+            // convert lunchBreakTime to minutes
+            lunchBreakTime = lunchBreakTime.split(":");
+            lunchBreakTime = parseInt(lunchBreakTime[0]) * 60 + parseInt(lunchBreakTime[1]);
+            // convert exceptionTime to minutes
+            exceptionTime = exceptionTime.split(":");
+            exceptionTime = parseInt(exceptionTime[0]) * 60 + parseInt(exceptionTime[1]);
 
+            // get the index of the day of week
+            var day = new Date().getDay();
+            console.log('day: ' + day);
+            // get the values of c1, c2, c3, c4
+            var c1 = document.getElementById("c1_"+day).value;
+            var c2 = document.getElementById("c2_"+day).value;
+            var c3 = document.getElementById("c3_"+day).value;
+            var c4 = document.getElementById("c4_"+day).value;
+
+            //if c1 is set and others empty
+            if(c1 != "" && c2 == "" && c3 == "" && c4 == ""){
+                var timeLeft = c1 - lunchBreakTime;
+                console.log('timeLeft: ' + timeLeft+ ' lunchBreakTime: ' + lunchBreakTime);
+                var cumulated = "HH:mm";
+            }
+            //if c1 and c2 are set and others empty
+            else if(c1 != "" && c2 != "" && c3 == "" && c4 == ""){
+                var timeLeft = c2 - lunchBreakTime;
+                var cumulated = c1 + timeLeft;
+            }
+            //if c1, c2 and c3 are set and others empty
+            else if(c1 != "" && c2 != "" && c3 != "" && c4 == ""){
+                var timeLeft = c3 - lunchBreakTime;
+                var cumulated = c1 + c2 + timeLeft;
+            }
+            //if c1, c2, c3 and c4 are set
+            else if(c1 != "" && c2 != "" && c3 != "" && c4 != ""){
+                var timeLeft = c4 - lunchBreakTime;
+                var cumulated = c1 + c2 + c3 + timeLeft;
+            }
+
+            document.getElementById("endOfDay").innerHTML = cumulated;
+
+
+
+        }
 
         function calculateTime(day, toDoWeek, lunchBreakTime, exceptionWeek, exceptionTime) {
             // convert lunchBreakTime to minutes
@@ -213,7 +258,6 @@
                 document.getElementById("timeLeft_"+day).innerHTML = convertMinToTime(timeLeft);
 
             }
-
 
             // ---- Cumulated
 

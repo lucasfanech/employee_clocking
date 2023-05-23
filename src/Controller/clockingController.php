@@ -64,7 +64,6 @@ class clockingController extends AbstractController
                 $partOfDay = array("Morning", "Lunch", "Afternoon", "Evening");
                 $date->modify('monday this week');
                 for ($i = 0; $i < 5; $i++){
-                    $date->modify('+1 day');
                     $days[$i]['date'] = $date->format('Y-m-d');
                     $days[$i]['name'] = $daysName[$i];
 
@@ -81,6 +80,7 @@ class clockingController extends AbstractController
 
 
                     }
+                    $date->modify('+1 day');
 
 
 
