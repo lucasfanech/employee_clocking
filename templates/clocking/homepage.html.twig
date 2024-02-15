@@ -48,7 +48,7 @@
                             </tr>
                         {% elseif daysOff[loop.index0] == 1 %}
                             <tr class="table-dark" id="tr_{{ loop.index0 }}">
-                                <td><h2>{{ day.name }}</h2><span>{{ day.date }}</span> | <span><span class="badge text-bg-warning">Day OFF</span></td>
+                                <td><h2>{{ day.name }}</h2><span>{{ day.date }}</span> | <span class="badge text-bg-warning">Day OFF</span></td>
                                 <td><input form="saveForm" type="time" id="c1_{{ loop.index0 }}" name="c1_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Morning }}" disabled></td>
                                 <td><input form="saveForm" type="time" id="c2_{{ loop.index0 }}" name="c2_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Lunch }}" disabled></td>
                                 <td><input form="saveForm" type="time" id="c3_{{ loop.index0 }}" name="c3_{{ loop.index0 }}" class="form-control" placeholder="Select time" value="{{ day.Afternoon }}" disabled></td>
@@ -92,12 +92,20 @@
                         </div>
 
                     <div class="card-body">
-                        <h5 class="card-title">End of the day</h5>
-                        <div class="btn-group">
-                            <a id="endOfDay" class="btn btn-primary active">HH:mm </a>
-                            <a class="btn btn-primary">HH:mm
+                        <h5 class="card-title">Estimation of the time left for the day
 
-                                <div class="badge bg-black text-wrap" style="width: 6rem;">
+
+                        </h5>
+                        <div class="btn-group d-flex">
+                            <a class="btn btn-primary active">
+                                <h3 id="endOfDay">HH:mm</h3>
+                                <div class="badge bg-black text-wrap" style="">
+                                    End of the day
+                                </div>
+                            </a>
+                            <a class="btn btn-primary">
+                                <h3 id="endOfWeek">HH:mm</h3>
+                                <div class="badge bg-black text-wrap" style="">
                                     Cumulated
                                 </div>
                             </a>
@@ -131,7 +139,7 @@
             for (var i = 0; i < days.length; i++) {
                 calculateTime(i, hoursToDoInWeek, lunchBreakTime, days[i], exceptionTime);
             }
-            endOfTheDay(week, lunchBreakTime, days, exceptionTime);
+            endOfTheDay(week, lunchBreakTime, days, exceptionTime, hoursToDoInWeek);
             // get all the inputs starting with "c"
             for (var da = 0; da < days.length; da++) {
 
@@ -143,14 +151,14 @@
                         var id = this.id;
                         var day = id.substr(id.length - 1);
                         calculateTime(day, hoursToDoInWeek, lunchBreakTime, days[day], exceptionTime);
-                        endOfTheDay(week, lunchBreakTime, days[day], exceptionTime);
+                        endOfTheDay(week, lunchBreakTime, days[day], exceptionTime, hoursToDoInWeek);
                     });
                 }
 
             }
         });
 
-        function endOfTheDay(week, lunchBreakTime, exceptionWeek, exceptionTime){
+        function endOfTheDay(week, lunchBreakTime, exceptionWeek, exceptionTime, hoursToDoInWeek){
             // convert lunchBreakTime to minutes
             lunchBreakTime = lunchBreakTime.split(":");
             lunchBreakTime = parseInt(lunchBreakTime[0]) * 60 + parseInt(lunchBreakTime[1]);
@@ -158,41 +166,89 @@
             exceptionTime = exceptionTime.split(":");
             exceptionTime = parseInt(exceptionTime[0]) * 60 + parseInt(exceptionTime[1]);
 
+            // convert hoursToDoInWeek /5 to minutes
+            hoursToDoInWeek = hoursToDoInWeek.split(":");
+            console.log('hoursToDoInWeek: ' + hoursToDoInWeek);
+            // convert 38,30,00 to 38 hours and 30 minutes and then to minutes
+            var minutesToDoInWeek = parseInt(hoursToDoInWeek[0]) * 60 + parseInt(hoursToDoInWeek[1]);
+            //divide by 5
+            var minutesToDoInDay = minutesToDoInWeek / 5;
             // get the index of the day of week
             var day = new Date().getDay();
-            console.log('day: ' + day);
             // get the values of c1, c2, c3, c4
-            var c1 = document.getElementById("c1_"+day).value;
-            var c2 = document.getElementById("c2_"+day).value;
-            var c3 = document.getElementById("c3_"+day).value;
-            var c4 = document.getElementById("c4_"+day).value;
+            var c1 = document.getElementById("c1_"+(day-1)).value;
+            var c2 = document.getElementById("c2_"+(day-1)).value;
+            var c3 = document.getElementById("c3_"+(day-1)).value;
+            var c4 = document.getElementById("c4_"+(day-1)).value;
 
             //if c1 is set and others empty
             if(c1 != "" && c2 == "" && c3 == "" && c4 == ""){
-                var timeLeft = c1 - lunchBreakTime;
-                console.log('timeLeft: ' + timeLeft+ ' lunchBreakTime: ' + lunchBreakTime);
-                var cumulated = "HH:mm";
+                // c1 hh:mm - lunchBreakTime (hh:mm)
+                var c1 = c1.split(":");
+                var c1 = parseInt(c1[0]) * 60 + parseInt(c1[1]);
+                var timeLeft = c1 + lunchBreakTime + minutesToDoInDay;
+                var cumulated = convertMinToTime(timeLeft);
             }
             //if c1 and c2 are set and others empty
             else if(c1 != "" && c2 != "" && c3 == "" && c4 == ""){
-                var timeLeft = c2 - lunchBreakTime;
-                var cumulated = c1 + timeLeft;
+                // c1 hh:mm - lunchBreakTime (hh:mm)
+                var c1 = c1.split(":");
+                var c1 = parseInt(c1[0]) * 60 + parseInt(c1[1]);
+                var timeLeft = c1 + lunchBreakTime + minutesToDoInDay;
+                var cumulated = convertMinToTime(timeLeft);
             }
             //if c1, c2 and c3 are set and others empty
             else if(c1 != "" && c2 != "" && c3 != "" && c4 == ""){
-                var timeLeft = c3 - lunchBreakTime;
-                var cumulated = c1 + c2 + timeLeft;
+                var c1 = c1.split(":");
+                var c1 = parseInt(c1[0]) * 60 + parseInt(c1[1]);
+                var c3 = c3.split(":");
+                var c3 = parseInt(c3[0]) * 60 + parseInt(c3[1]);
+                var c2 = c2.split(":");
+                var c2 = parseInt(c2[0]) * 60 + parseInt(c2[1]);
+                var timeTookForLunch = c3 - c2;
+                var timeLeft = c1 + timeTookForLunch + minutesToDoInDay;
+                var cumulated = convertMinToTime(timeLeft);
             }
             //if c1, c2, c3 and c4 are set
             else if(c1 != "" && c2 != "" && c3 != "" && c4 != ""){
-                var timeLeft = c4 - lunchBreakTime;
-                var cumulated = c1 + c2 + c3 + timeLeft;
+                var c1 = c1.split(":");
+                var c1 = parseInt(c1[0]) * 60 + parseInt(c1[1]);
+                var c3 = c3.split(":");
+                var c3 = parseInt(c3[0]) * 60 + parseInt(c3[1]);
+                var c2 = c2.split(":");
+                var c2 = parseInt(c2[0]) * 60 + parseInt(c2[1]);
+                var timeTookForLunch = c3 - c2;
+                var timeLeft = c1 + timeTookForLunch + minutesToDoInDay;
+                var cumulated = convertMinToTime(timeLeft);
             }
 
             document.getElementById("endOfDay").innerHTML = cumulated;
 
+            // ---- Cumulated
+            // check if cumulated_X is existing (X actual day -1)
+            if (document.getElementById("cumulated_"+(day-2)) != null) {
+                var previousCumulated = document.getElementById("cumulated_"+(day-2)).innerHTML;
 
+                // if previousCumulated is equal to "X"
+                if (previousCumulated == "X") {
+                    // we will loop from day-2 to 0 unti lI find document.getElementById("cumulated_"+(X-2)) != null or != "X"
+                    for (var i = (day-2); i >= 0; i--) {
+                        if (document.getElementById("cumulated_"+i) != null && document.getElementById("cumulated_"+i).innerHTML != "X") {
+                            previousCumulated = document.getElementById("cumulated_"+i).innerHTML;
+                            break;
+                        }
+                    }
 
+                }
+
+                if (previousCumulated != "X") {
+                   console.log('previousCumulated: ' + previousCumulated);
+                    var previousCumulated = previousCumulated.split(":");
+                    var previousCumulated = parseInt(previousCumulated[0]) * 60 + parseInt(previousCumulated[1]);
+                    var cumulated = timeLeft + previousCumulated;
+                    document.getElementById("endOfWeek").innerHTML = convertMinToTime(cumulated);
+                }
+            }
         }
 
         function calculateTime(day, toDoWeek, lunchBreakTime, exceptionWeek, exceptionTime) {

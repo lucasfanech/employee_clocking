@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 --
 
 INSERT INTO `user` (`id`, `email`, `roles`, `password`) VALUES
-(1, 'test@test.com', '[\"ROLE_ADMIN\"]', '$2y$13$Kai1ToCC9ES6nocTmqWy4eV3oy5UEhJnuldK/bIERH40wL0YTXGAi');
+(1, 'test@test.com', '[\"ROLE_ADMIN\"]', '$2y$10$Xwa5JmlAWBKDfm5lbzklqe5Mjg/bStJjBFzx96oMjjhfEeTTN1MNu');
 
 --
 -- Contraintes pour les tables déchargées

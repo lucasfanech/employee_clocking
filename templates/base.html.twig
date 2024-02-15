@@ -13,11 +13,11 @@
         {% endblock %}
     </head>
     <header>
-        <div class="px-3 text-bg-dark">
-            <div class="container">
-                <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+        <nav class="navbar navbar-expand bg-white shadow mb-4 topbar static-top navbar-light">
+            <div class="container-fluid">
+                <div class="d-flex flex-wrap align-items-center justify-content-between">
                     <a href="{{ path('index') }}" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
-                        <h2>Clocking</h2>
+                        <h2 class="text-primary">Clocking</h2>
                     </a>
 
                     <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
@@ -35,8 +35,8 @@
 
                             {% for link in navLinks %}
                                 <li>
-                                    <a href="{{ path(link['path']) }}" class="nav-link{% if currentPath == link['path'] or (currentPath == 'home' and link['path'] == 'index')  %} text-secondary{% else %} text-white{% endif %}">
-                                        <i class="fas {{ link['icon'] }}"></i> {# Ajout de "fas" pour les icônes FontAwesome #}
+                                    <a href="{{ path(link['path']) }}" class="nav-link{% if currentPath == link['path'] or (currentPath == 'home' and link['path'] == 'index')  %} text-primary{% else %} text-dark{% endif %}">
+                                        <i class="fas {{ link['icon'] }}"></i>
                                         {{ link['label'] }}
                                     </a>
                                 </li>
@@ -52,10 +52,14 @@
                     </ul>
                 </div>
             </div>
-        </div>
+        </nav>
 
     </header>
     <body>
-        {% block body %}{% endblock %}
+        <div class="container-fluid">
+            <div class="card shadow p-2">
+            {% block body %}{% endblock %}
+            </div>
+        </div>
     </body>
 </html>
