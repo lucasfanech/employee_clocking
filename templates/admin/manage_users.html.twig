@@ -1,0 +1,49 @@
+{# templates/admin/manage_users.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Manage Users</h1>
+
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Password</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <form method="post" action="{{ path('admin_update_user_role', {'id': user.id}) }}">
+                            <select name="role" class="form-select">
+                                <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>User</option>
+                                <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Admin</option>
+                            </select>
+                            <button class="btn btn-primary" type="submit">Update Role</button>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="post" action="{{ path('admin_update_user_password', {'id': user.id}) }}">
+                            <input type="password" name="password" placeholder="New Password" class="form-control">
+                            <button class="btn btn-primary" type="submit">Update Password</button>
+                        </form>
+                    </td>
+                    <td>
+                        <a class="btn btn-danger" href="{{ path('delete_user', {'id': user.id}) }}" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -11,20 +11,47 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\Security\Core\Security;
 
 class clockingController extends AbstractController
 {
     #[Route('/', name: 'index')]
     public function home(): Response
     {
-        $year = date('Y');
-        $week = date('W');
-        return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
+        return $this->redirectToRoute('login');
     }
 
+    #[Route('/login', name: 'login')]
+    public function login(AuthenticationUtils $authenticationUtils): Response
+    {
+        // Si l'utilisateur est déjà connecté, redirige vers la homepage
+        if ($this->getUser()) {
+            $year = date('Y');
+            $week = date('W');
+            return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
+        }
+
+        // Récupère les erreurs de la dernière tentative de connexion (le cas échéant)
+        $error = $authenticationUtils->getLastAuthenticationError();
+
+        // Récupère le dernier nom d'utilisateur saisi (si saisi)
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        return $this->render('security/login.html.twig', [
+            'last_username' => $lastUsername,
+            'error'         => $error,
+        ]);
+    }
+
+    #[Route('/logout', name: 'logout')]
+    public function logout(): void
+    {
+        // Le routeur interceptera cette demande et la traitera en conséquence
+    }
 
     #[Route('/home/{year}/{week}', name: 'home')]
-    public function homepage(string $year = null, string $week = null, EntityManagerInterface $entityManager): Response{
+    public function homepage(string $year = null, string $week = null, EntityManagerInterface $entityManager, Security $security): Response{
         if ($week == 0){
             $week = 52;
             $year = $year - 1;
@@ -39,6 +66,10 @@ class clockingController extends AbstractController
             $year = $year + 1;
             return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
         }
+
+        // get the connected user and get his id
+        $user = $security->getUser();
+        $userId = $user->getId();
 
         $message = "";
         $message2 = "";
@@ -70,25 +101,19 @@ class clockingController extends AbstractController
                     // loop of 4 parts of day
                     for ($j = 0; $j < 4; $j++){
                         // get from DB table clocking where week_ref == $year.$week and day == $daysName[$i] and partOfDay == $partOfDay[$j]
-                        $clocking = $entityManager->getRepository(Clocking::class)->findBy(array('week_ref' => $year.$week, 'day' => $daysName[$i], 'partOfDay' => $partOfDay[$j]));
+                        $clocking = $entityManager->getRepository(Clocking::class)->findBy(array('week_ref' => $year.$week, 'day' => $daysName[$i], 'partOfDay' => $partOfDay[$j], 'user' => $userId));
                         if ($clocking){
                             $days[$i][$partOfDay[$j]] = $clocking[0]->getClockingHour()->format('H:i');
                         }
                         else{
                             $days[$i][$partOfDay[$j]] = "";
                         }
-
-
                     }
                     $date->modify('+1 day');
-
-
-
-
                 }
 
                 // get configuration
-                $conf = $entityManager->getRepository(Conf::class)->findAll();
+                $conf = $entityManager->getRepository(Conf::class)->findBy(array('user' => $userId));
                 if (!$conf){
                     $config = 0;
                     $this->addFlash('error', 'Missing configuration!');
@@ -116,13 +141,10 @@ class clockingController extends AbstractController
                             }
                         }
                     }
-
-
-
                 }
 
                 // Days off
-                $daysOff = $entityManager->getRepository(DayOff::class)->findBy(array('week_ref' => $year.$week));
+                $daysOff = $entityManager->getRepository(DayOff::class)->findBy(array('week_ref' => $year.$week, 'user' => $userId));
                 $daysOff_array = array();
                 for ($i = 0; $i < 5; $i++){
                     $daysOff_array[$i] = 0;
@@ -134,15 +156,11 @@ class clockingController extends AbstractController
                         }
                     }
                 }
-
-
             }else{
                 $year = date('Y');
                 $week = date('W');
                 return $this->redirectToRoute('home', ['year' => $year, 'week' => $week]);
             }
-
-
         }else{
             $year = date('Y');
             $week = date('W');
@@ -161,13 +179,17 @@ class clockingController extends AbstractController
             'exceptionTime' => $exceptionTime,
             'exceptionDays' => $days_array,
             'daysOff' => $daysOff_array,
-
+            'user' => $user,
         ]);
 
     }
 
     #[Route('/home/save/{year}/{week}', name: 'clocking_save')]
-    public function save(EntityManagerInterface $entityManager, Request $request, string $year = null, string $week = null): Response{
+    public function save(EntityManagerInterface $entityManager, Request $request, string $year = null, string $week = null, Security $security): Response{
+        // get the connected user and get his id
+        $user = $security->getUser();
+        $userId = $user->getId();
+
         $message = "All clocking data saved";
         // POST data
         $data = $request->request->all();
@@ -203,7 +225,7 @@ class clockingController extends AbstractController
 
         // SAVE DATA
         // check every entries in clocking table with week_ref = $year.$week
-        $clocking = $entityManager->getRepository(Clocking::class)->findBy(['week_ref' => $year.$week]);
+        $clocking = $entityManager->getRepository(Clocking::class)->findBy(['week_ref' => $year.$week, 'user' => $userId]);
         if ($clocking){
             // drop all data with week_ref = $year.$week
             foreach ($clocking as $clock){
@@ -220,6 +242,7 @@ class clockingController extends AbstractController
                     $clock->setDay($days[$i]);
                     $clock->setPartOfDay('Morning');
                     $clock->setClockingHour($daysData[$i]['Morning']);
+                    $clock->setUser($user);
                     $entityManager->persist($clock);
                 }
                 if ($daysData[$i]['Lunch'] != null){
@@ -228,6 +251,7 @@ class clockingController extends AbstractController
                     $clock->setDay($days[$i]);
                     $clock->setPartOfDay('Lunch');
                     $clock->setClockingHour($daysData[$i]['Lunch']);
+                    $clock->setUser($user);
                     $entityManager->persist($clock);
                 }
                 if ($daysData[$i]['Afternoon'] != null){
@@ -236,6 +260,7 @@ class clockingController extends AbstractController
                     $clock->setDay($days[$i]);
                     $clock->setPartOfDay('Afternoon');
                     $clock->setClockingHour($daysData[$i]['Afternoon']);
+                    $clock->setUser($user);
                     $entityManager->persist($clock);
                 }
                 if ($daysData[$i]['Evening'] != null){
@@ -244,6 +269,7 @@ class clockingController extends AbstractController
                     $clock->setDay($days[$i]);
                     $clock->setPartOfDay('Evening');
                     $clock->setClockingHour($daysData[$i]['Evening']);
+                    $clock->setUser($user);
                     $entityManager->persist($clock);
                 }
             }
@@ -257,12 +283,15 @@ class clockingController extends AbstractController
     }
 
     #[Route('/home/dayoff/{year}/{week}', name: 'dayOff')]
-    public function dayOff(EntityManagerInterface $entityManager, Request $request, string $year = null, string $week = null): Response{
+    public function dayOff(EntityManagerInterface $entityManager, Request $request, string $year = null, string $week = null, Security $security): Response{
         $day = $request->request->get('dayOffBtn');
         $arrayDays = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday');
 
+        // get the connected user and get his id
+        $user = $security->getUser();
+        $userId = $user->getId();
 
-        $clocking = $entityManager->getRepository(Clocking::class)->findBy(['week_ref' => $year.$week, 'day' => $arrayDays[$day]]);
+        $clocking = $entityManager->getRepository(Clocking::class)->findBy(['week_ref' => $year.$week, 'day' => $arrayDays[$day], 'user' => $userId]);
         if ($clocking){
             // drop all data with week_ref = $year.$week
             foreach ($clocking as $clock){
@@ -270,7 +299,7 @@ class clockingController extends AbstractController
             }
         }
         // look into dayoff table if already exist a dayoff for this week and this day
-        $dayOff = $entityManager->getRepository(DayOff::class)->findOneBy(['week_ref' => $year.$week, 'day' => $day]);
+        $dayOff = $entityManager->getRepository(DayOff::class)->findOneBy(['week_ref' => $year.$week, 'day' => $day, 'user' => $userId]);
         if ($dayOff){
             // drop all data with week_ref = $year.$week
             $entityManager->remove($dayOff);
@@ -280,6 +309,7 @@ class clockingController extends AbstractController
             $dayOff = new DayOff();
             $dayOff->setWeekRef($year.$week);
             $dayOff->setDay($day);
+            $dayOff->setUser($user);
             $entityManager->persist($dayOff);
         }
 

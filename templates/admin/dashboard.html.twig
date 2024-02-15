@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Welcome to the Admin Dashboard</h1>
+
+        {# Add your admin dashboard content here #}
+
+        <div class="mt-3">
+            <h2>Quick Links:</h2>
+            <ul>
+                <li><a href="{{ path('admin_create_user') }}">Add user</a></li>
+                <li><a href="{{ path('admin_users') }}">Manage users</a></li>
+                {# Add more links as needed #}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

@@ -21,24 +21,34 @@
                     </a>
 
                     <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
-                        <li>
-                            <a href="{{ path('index') }}" class="nav-link text-secondary">
-                                <i class="fa-solid fa-house-user"></i>
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('calendar') }}" class="nav-link text-white">
-                                <i class="fa-regular fa-calendar-days"></i>
-                                Calendar
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ path('configPage') }}" class="nav-link text-white">
-                                <i class="fa-solid fa-gear"></i>
-                                Configuration
-                            </a>
-                        </li>
+                        {% set currentPath = app.request.attributes.get('_route') %}
+                        {# if logged in #}
+                        {% if app.user %}
+                            {% set navLinks = [
+                                {'path': 'index', 'label': 'Home', 'icon': 'fa-house-user'},
+                                {'path': 'calendar', 'label': 'Calendar', 'icon': 'fa-calendar-days'},
+                                {'path': 'configPage', 'label': 'Configuration', 'icon': 'fa-gear'},
+                                {'path': 'admin_dashboard', 'label': 'Admin Panel', 'icon': 'fa-lock', 'role': 'ROLE_ADMIN'},
+                                {'path': 'user_profile', 'label': app.user.email|split('@')[0], 'icon': 'fa-user'},
+                                {'path': 'logout', 'label': '', 'icon': 'fa-sign-out'},
+                            ] %}
+
+                            {% for link in navLinks %}
+                                <li>
+                                    <a href="{{ path(link['path']) }}" class="nav-link{% if currentPath == link['path'] or (currentPath == 'home' and link['path'] == 'index')  %} text-secondary{% else %} text-white{% endif %}">
+                                        <i class="fas {{ link['icon'] }}"></i> {# Ajout de "fas" pour les icônes FontAwesome #}
+                                        {{ link['label'] }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li>
+                                <a href="{{ path('login') }}" class="nav-link text-white">
+                                    <i class="fa-solid fa-sign-in"></i>
+                                    Login
+                                </a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

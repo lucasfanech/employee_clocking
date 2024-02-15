@@ -2,13 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\ClockingRepository;
-use Doctrine\DBAL\Types\Types;
+use App\Repository\DayOffRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: ClockingRepository::class)]
-class Clocking
+#[ORM\Entity(repositoryClass: DayOffRepository::class)]
+class DayOff
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,14 +17,8 @@ class Clocking
     #[ORM\Column]
     private ?int $week_ref = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $day = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $partOfDay = null;
-
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $clockingHour = null;
+    #[ORM\Column]
+    private ?int $day = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -42,6 +35,7 @@ class Clocking
 
         return $this;
     }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,38 +53,14 @@ class Clocking
         return $this;
     }
 
-    public function getDay(): ?string
+    public function getDay(): ?int
     {
         return $this->day;
     }
 
-    public function setDay(string $day): self
+    public function setDay(int $day): self
     {
         $this->day = $day;
-
-        return $this;
-    }
-
-    public function getPartOfDay(): ?string
-    {
-        return $this->partOfDay;
-    }
-
-    public function setPartOfDay(string $partOfDay): self
-    {
-        $this->partOfDay = $partOfDay;
-
-        return $this;
-    }
-
-    public function getClockingHour(): ?\DateTimeInterface
-    {
-        return $this->clockingHour;
-    }
-
-    public function setClockingHour(\DateTimeInterface $clockingHour): self
-    {
-        $this->clockingHour = $clockingHour;
 
         return $this;
     }

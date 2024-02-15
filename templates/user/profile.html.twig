@@ -1,0 +1,45 @@
+{# templates/user/profile.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h2 class="mb-4">User Profile</h2>
+
+        <div class="row">
+            <div class="col-md-6">
+                <form method="post" action="{{ path('user_profile') }}" class="mb-4">
+                    {{ form_start(form) }}
+
+                    <div class="mb-3">
+                        {{ form_label(form.email) }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+
+                    {# Ajoutez d'autres champs si nécessaire avec la structure ci-dessus #}
+
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                    {{ form_end(form) }}
+                </form>
+            </div>
+
+            <div class="col-md-6">
+                <form method="post" action="{{ path('change_password') }}" class="mb-4">
+                    {{ form_start(passwordForm) }}
+
+                    <div class="mb-3">
+                        {{ form_label(passwordForm.plainPassword) }}
+                        {{ form_widget(passwordForm.plainPassword, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                    {{ form_end(passwordForm) }}
+                </form>
+            </div>
+        </div>
+
+        <form method="post" action="{{ path('reset_data') }}" onsubmit="return confirm('Are you sure you want to reset all data?');" class="mb-4">
+            <button type="submit" class="btn btn-danger">Reset All Data</button>
+        </form>
+    </div>
+{% endblock %}

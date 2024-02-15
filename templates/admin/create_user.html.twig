@@ -1,0 +1,34 @@
+{# templates/admin/create_user.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Create User{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Create User</h1>
+
+        <form method="post" action="{{ path('admin_create_user') }}" class="mb-4">
+            {{ form_start(form) }}
+
+            <div class="mb-3">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.password) }}
+                {{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
+            </div>
+
+            {# Ajoutez le champ role si nécessaire #}
+            {# <div class="mb-3">
+                {{ form_label(form.role) }}
+                {{ form_widget(form.role, {'attr': {'class': 'form-control'}}) }}
+            </div> #}
+
+            <button type="submit" class="btn btn-primary">Create User</button>
+            {{ form_end(form) }}
+        </form>
+    </div>
+{% endblock %}

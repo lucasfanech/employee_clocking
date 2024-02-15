@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ConfRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: ConfRepository::class)]
 class Conf
@@ -25,6 +26,22 @@ class Conf
 
     #[ORM\Column(length: 255)]
     private ?string $time_hoursToDoWeek = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?UserInterface $user;
+
+    public function getUser(): ?UserInterface
+    {
+        return $this->user;
+    }
+
+    public function setUser(?UserInterface $user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 
     public function getId(): ?int
     {
