@@ -220,7 +220,11 @@
                         cumulated = timeLeft - previousCumulated;
                         console.log('cumulated: ' + cumulated, 'previousCumulated: ' + previousCumulated, 'timeLeft: ' + timeLeft);
                     }
-                    document.getElementById("endOfWeek").innerHTML = convertMinToTime(cumulated);
+                    // if cumulated is a valid number
+                    if (cumulated > 0) {
+                        document.getElementById("endOfWeek").innerHTML = convertMinToTime(cumulated);
+                    }
+
                 }
             }
         }

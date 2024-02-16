@@ -8,13 +8,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 
 class configController extends AbstractController
 {
     #[Route('/config', name: 'configPage')]
-    public function config(EntityManagerInterface $entityManager): Response{
-        // check if entry in Conf table
-        $conf = $entityManager->getRepository(Conf::class)->findAll();
+    public function config(EntityManagerInterface $entityManager, Security $security): Response{
+        // check if entry in Conf table exists for the user
+        // get the connected user and get his id
+        $user = $security->getUser();
+        $userId = $user->getId();
+        $conf = $entityManager->getRepository(Conf::class)->findBy(['user' => $userId]);
         if (!$conf){
             $config = 0;
             $this->addFlash('error', 'Missing configuration!');
@@ -85,7 +89,11 @@ class configController extends AbstractController
 
 
     #[Route('/config/save', name: 'config_save')]
-    public function save(EntityManagerInterface $entityManager, Request $request): Response{
+    public function save(EntityManagerInterface $entityManager, Request $request, Security $security): Response{
+        // get the connected user and get his id
+        $user = $security->getUser();
+        $userId = $user->getId();
+
         // get POST data
         $lunchBreakTime = $request->request->get('lunchBreakTime');
         $h_hoursToDoInWeek = $request->request->get('h_hoursToDoInWeek');
@@ -116,7 +124,7 @@ class configController extends AbstractController
         }
 
         // check if entry in Conf table
-        $conf = $entityManager->getRepository(Conf::class)->findAll();
+        $conf = $entityManager->getRepository(Conf::class)->findBy(['user' => $userId]);
         if (!$conf){
             // create new entry
             $config = new Conf();
@@ -124,6 +132,7 @@ class configController extends AbstractController
             $config->setTimeHoursToDoWeek($hoursToDoInWeek);
             $config->setTimeException(new \DateTime($exceptionTime));
             $config->setDaysException($exceptionDays);
+            $config->setUser($user);
             $entityManager->persist($config);
             $entityManager->flush();
             $this->addFlash('success', 'Configuration saved!');
@@ -140,19 +149,6 @@ class configController extends AbstractController
 
         }
         return $this->redirectToRoute('configPage');
-//        return $this->render('config/config.html.twig', [
-//            'config' => 1,
-//            'lunchBreakTime' => $lunchBreakTime,
-//            'hoursToDoInWeek' => $hoursToDoInWeek,
-//            'exceptionTime' => $exceptionTime,
-//            'mon' => $mon,
-//            'tue' => $tue,
-//            'wed' => $wed,
-//            'thu' => $thu,
-//            'fri' => $fri,
-//        ]);
-
-
     }
 
 }
