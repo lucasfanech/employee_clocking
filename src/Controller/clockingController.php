@@ -156,6 +156,112 @@ class clockingController extends AbstractController
                         }
                     }
                 }
+
+                // Today leaving time
+                $today = date('Y-m-d');
+                //$yesterday = date('Y-m-d', strtotime("-1 days"));
+                //$today = $yesterday;
+                $todayClocking = $entityManager->getRepository(Clocking::class)->findBy(array('week_ref' => $year.$week, 'day' => date('l', strtotime($today)), 'user' => $userId));
+                $todayLeavingTime = "HH:mm";
+                $todayMessage = "";
+                // check If a morning clocking exists in todayClocking
+                if ($todayClocking){
+                    if ($todayClocking[0]->getClockingHour() != null){
+                        // check if "Morning" clocking exists
+                        if ($todayClocking[0]->getPartOfDay() == "Morning"){
+
+                            // Morning clocking + (hoursToDoInWeek/5) - lunchBreakTime
+                            $todayLeavingTime  = $todayClocking[0]->getClockingHour()->format('H:i');
+                            $todayLeavingTime  = new DateTime($todayLeavingTime);
+                            // convert hoursToDoInWeek to minutes and divide by 5, hoursToDoInWeek is having string format HH:mm:ss
+                            $_hoursToDoInWeek = explode(":", $hoursToDoInWeek);
+                            $_hoursToDoInWeek = $_hoursToDoInWeek[0] * 60 + $_hoursToDoInWeek[1];
+                            $_hoursToDoInWeek = $_hoursToDoInWeek / 5;
+                            $todayLeavingTime->modify('+'.$_hoursToDoInWeek.' minutes');
+
+                            // -- [ LUNCHTIME ] --
+
+                            // if today's day is in exceptionDay
+                            if ($days_array[date('N', strtotime($today)) - 1] == 1){
+                                // lunchBreakTime is having DateTime format, get HH:mm and add to todayLeavingTime
+                                $_lunchBreakTime = $exceptionTime->format('H:i');
+                                $_lunchBreakTime = explode(":", $_lunchBreakTime);
+                                $_lunchBreakTime = $_lunchBreakTime[0] * 60 + $_lunchBreakTime[1];
+                                $todayLeavingTime->modify('+'.$_lunchBreakTime.' minutes');
+                            }else{
+                                // lunchBreakTime is having DateTime format, get HH:mm and add to todayLeavingTime
+                                $_lunchBreakTime = $lunchBreakTime->format('H:i');
+                                $_lunchBreakTime = explode(":", $_lunchBreakTime);
+                                $_lunchBreakTime = $_lunchBreakTime[0] * 60 + $_lunchBreakTime[1];
+                                $todayLeavingTime->modify('+'.$_lunchBreakTime.' minutes');
+                            }
+
+                            // check if index 1 exists
+                            if (isset($todayClocking[1])) {
+                                // check if "Lunch" clocking exists
+                                if ($todayClocking[1]->getClockingHour() != null) {
+                                    // check if index 2 exists
+                                    if (isset($todayClocking[2])) {
+                                        // check if "Afternoon" clocking exists
+                                        if ($todayClocking[2]->getClockingHour() != null) {
+                                            if ($todayClocking[2]->getPartOfDay() == "Afternoon") {
+
+                                                // Morning clocking + (hoursToDoInWeek/5) - (Afternoon-Lunch)
+                                                $todayLeavingTime  = $todayClocking[0]->getClockingHour()->format('H:i');
+                                                $todayLeavingTime  = new DateTime($todayLeavingTime);
+                                                // convert hoursToDoInWeek to minutes and divide by 5, hoursToDoInWeek is having string format HH:mm:ss
+                                                $_hoursToDoInWeek = explode(":", $hoursToDoInWeek);
+                                                $_hoursToDoInWeek = $_hoursToDoInWeek[0] * 60 + $_hoursToDoInWeek[1];
+                                                $_hoursToDoInWeek = $_hoursToDoInWeek / 5;
+                                                $todayLeavingTime->modify('+'.$_hoursToDoInWeek.' minutes');
+
+                                                // -- [ LUNCHTIME ] --
+
+                                                // if today's day is in exceptionDay
+                                                if ($days_array[date('N', strtotime($today)) - 1] == 1){
+                                                    $refTime = $exceptionTime;
+
+                                                }else{
+                                                    $refTime = $lunchBreakTime;
+                                                }
+
+                                                // set lunchBreakTime equals to the interval between  $todayClocking[2]->getClockingHour() and $todayClocking[1]->getClockingHour()
+                                                $interval = $todayClocking[2]->getClockingHour()->diff($todayClocking[1]->getClockingHour());
+                                                // convert interval to DateTime format
+                                                $interval = new DateTime($interval->format('%H:%I'));
+
+                                                // if interval is less than exceptionTime set interval to exceptionTime (use H:i format of exceptionTime and interval)
+
+                                                if ($interval->format('H:i') < $refTime->format('H:i')){
+                                                    $interval = $refTime->format('H:i');
+                                                }
+
+                                                // add interval to todayLeavingTime
+                                                // convert interval to minutes and add to todayLeavingTime
+                                                $interval = explode(":", $interval->format('H:i'));
+                                                $interval = $interval[0] * 60 + $interval[1];
+                                                $todayLeavingTime->modify('+'.$interval.' minutes');
+
+                                                // check if index 3 exists
+                                                if (isset($todayClocking[3])) {
+                                                    // check if "Evening" clocking exists
+                                                    if ($todayClocking[3]->getClockingHour() != null) {
+                                                        $todayMessage = "You have already clocked out";
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }else{
+                            $todayLeavingTime = "HH:mm";
+                        }
+                    }
+                }
+
             }else{
                 $year = date('Y');
                 $week = date('W');
@@ -180,6 +286,8 @@ class clockingController extends AbstractController
             'exceptionDays' => $days_array,
             'daysOff' => $daysOff_array,
             'user' => $user,
+            'todayLeavingTime' => $todayLeavingTime,
+            'todayMessage' => $todayMessage,
         ]);
 
     }
