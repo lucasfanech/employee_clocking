@@ -34,12 +34,14 @@
                             ] %}
 
                             {% for link in navLinks %}
-                                <li>
-                                    <a href="{{ path(link['path']) }}" class="nav-link{% if currentPath == link['path'] or (currentPath == 'home' and link['path'] == 'index')  %} text-primary{% else %} text-dark{% endif %}">
-                                        <i class="fas {{ link['icon'] }}"></i>
-                                        {{ link['label'] }}
-                                    </a>
-                                </li>
+                                {% if not link.role is defined or is_granted(link.role) %}
+                                    <li>
+                                        <a href="{{ path(link['path']) }}" class="nav-link{% if currentPath == link['path'] or (currentPath == 'home' and link['path'] == 'index')  %} text-primary{% else %} text-dark{% endif %}">
+                                            <i class="fas {{ link['icon'] }}"></i>
+                                            {{ link['label'] }}
+                                        </a>
+                                    </li>
+                                {% endif %}
                             {% endfor %}
                         {% else %}
                             <li>
