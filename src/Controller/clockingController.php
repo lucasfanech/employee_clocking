@@ -237,7 +237,7 @@ class clockingController extends AbstractController
                                                 // if interval is less than exceptionTime set interval to exceptionTime (use H:i format of exceptionTime and interval)
 
                                                 if ($interval->format('H:i') < $refTime->format('H:i')){
-                                                    $interval = $refTime->format('H:i');
+                                                    $interval = $refTime;
                                                 }
 
                                                 // add interval to todayLeavingTime
