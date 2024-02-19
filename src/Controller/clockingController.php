@@ -160,8 +160,13 @@ class clockingController extends AbstractController
                 // Today leaving time
                 $today = date('Y-m-d');
                 //$yesterday = date('Y-m-d', strtotime("-1 days"));
-                //$today = $yesterday;
-                $todayClocking = $entityManager->getRepository(Clocking::class)->findBy(array('week_ref' => $year.$week, 'day' => date('l', strtotime($today)), 'user' => $userId));
+                $todayYear = date('Y');
+                $todayWeek = date('W');
+                // if week contains 0 before, remove it
+                if (substr($todayWeek, 0, 1) == "0"){
+                    $todayWeek = substr($todayWeek, 1);
+                }
+                $todayClocking = $entityManager->getRepository(Clocking::class)->findBy(array('week_ref' => $todayYear.$todayWeek, 'day' => date('l', strtotime($today)), 'user' => $userId));
                 $todayLeavingTime = "HH:mm";
                 $todayMessage = "";
                 // check If a morning clocking exists in todayClocking
@@ -205,7 +210,6 @@ class clockingController extends AbstractController
                                         // check if "Afternoon" clocking exists
                                         if ($todayClocking[2]->getClockingHour() != null) {
                                             if ($todayClocking[2]->getPartOfDay() == "Afternoon") {
-
                                                 // Morning clocking + (hoursToDoInWeek/5) - (Afternoon-Lunch)
                                                 $todayLeavingTime  = $todayClocking[0]->getClockingHour()->format('H:i');
                                                 $todayLeavingTime  = new DateTime($todayLeavingTime);
@@ -297,6 +301,12 @@ class clockingController extends AbstractController
         // get the connected user and get his id
         $user = $security->getUser();
         $userId = $user->getId();
+
+        // if week contains 0 before, remove it
+        if (substr($week, 0, 1) == "0"){
+            $week = substr($week, 1);
+        }
+
 
         $message = "All clocking data saved";
         // POST data
@@ -398,6 +408,11 @@ class clockingController extends AbstractController
         // get the connected user and get his id
         $user = $security->getUser();
         $userId = $user->getId();
+
+        // if week contains 0 before, remove it
+        if (substr($week, 0, 1) == "0"){
+            $week = substr($week, 1);
+        }
 
         $clocking = $entityManager->getRepository(Clocking::class)->findBy(['week_ref' => $year.$week, 'day' => $arrayDays[$day], 'user' => $userId]);
         if ($clocking){
