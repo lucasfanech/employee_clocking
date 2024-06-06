@@ -5,10 +5,10 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Uid\Uuid;
+use App\Service\ConversationHistoryService;
 
 class ChatController extends AbstractController
 {
@@ -16,40 +16,49 @@ class ChatController extends AbstractController
     private $apiBaseUrl;
     private $headers;
     private $initialSystemMessage;
-    private $conversationHistory;
+    private $conversationHistoryService;
 
-    public function __construct(HttpClientInterface $client)
+    public function __construct(HttpClientInterface $client, ConversationHistoryService $conversationHistoryService)
     {
         $this->client = $client;
         $this->apiBaseUrl = "https://api.cloudflare.com/client/v4/accounts/5421955b74bc72090671caa5ce3f4442/ai/run/";
         $this->headers = ["Authorization" => "Bearer 1bYav6JeBddRLBnIlPS2IJGNCCdZ2K4hkUDKH6Y7"];
-        $this->initialSystemMessage = ["role" => "system", "content" => "Tu t'appeles Sam et tu es un assistant. Répond de façon façon brute et simple uniquement en français."];
-        $this->conversationHistory = [];
+        $this->initialSystemMessage = ["role" => "system", "content" => "Objectif : Vous êtes un chatbot intelligent et amical qui se nomme 'Sam', conçu pour aider les utilisateurs en répondant à leurs questions de manière précise, informative et engageante.
+Personnalité : Vous êtes courtois, patient, et prêt à aider. Vous utilisez un langage simple et clair.
+Tâches : Répondez aux questions des utilisateurs, fournissez des informations et des suggestions utiles, et engagez la conversation de manière naturelle et fluide.
+Limites : Si vous ne savez pas quelque chose, avouez-le honnêtement et, si possible, proposez des moyens pour que l'utilisateur trouve l'information."];
+        $this->conversationHistoryService = $conversationHistoryService;
     }
 
-    #[Route('/chat', name: 'chat', methods: ['POST'])]
+    /**
+     * @Route("/chat", name="chat", methods={"POST"})
+     */
     public function chat(Request $request): JsonResponse
     {
         $messageData = json_decode($request->getContent(), true);
         $conversationId = $messageData['conversation_id'] ?? Uuid::v4();
 
-        if (!isset($this->conversationHistory[$conversationId])) {
-            $this->conversationHistory[$conversationId] = [$this->initialSystemMessage];
+        $conversationHistory = $this->conversationHistoryService->getConversationHistory($conversationId);
+
+        if (empty($conversationHistory)) {
+            $conversationHistory = [$this->initialSystemMessage];
         }
 
-        $message = $messageData['message'];
-        $this->conversationHistory[$conversationId][] = ["role" => "user", "content" => $message];
+        $conversationHistory = array_merge($conversationHistory, $messageData['conversation_history']);
 
-        $response = $this->client->request('POST', $this->apiBaseUrl . "@cf/mistral/mistral-7b-instruct-v0.1", [
+        $response = $this->client->request('POST', $this->apiBaseUrl . "@cf/meta/llama-3-8b-instruct", [
             'headers' => $this->headers,
-            'json' => ["messages" => $this->conversationHistory[$conversationId]],
+            'json' => ["messages" => $conversationHistory],
             'verify_peer' => false,
             'verify_host' => false,
         ]);
+
         $output = json_decode($response->getContent(), true);
         $responseMessage = $output['result']['response'];
 
-        $this->conversationHistory[$conversationId][] = ["role" => "assistant", "content" => $responseMessage];
+        $conversationHistory[] = ["role" => "assistant", "content" => $responseMessage];
+
+        $this->conversationHistoryService->setConversationHistory($conversationId, $conversationHistory);
 
         return new JsonResponse(['response' => $responseMessage]);
     }

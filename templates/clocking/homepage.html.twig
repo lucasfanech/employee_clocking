@@ -152,21 +152,21 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <div id="chatbot" class="col-md-4 d-flex flex-column h-100" style="">
-                                    <div class="container mt-5">
+                                <div id="chatbot" class=" d-flex flex-column h-100" style="">
+                                    <div class="container mt-5 p-5">
                                         <div class="chat-area" id="chat-area">
                                         </div>
                                         <div class="input-group mb-3">
-                                            <input type="text" class="form-control" id="message-input" placeholder="Discuter avec iTask...">
-                                            <button class="btn btn-primary" id="send-btn" type="button">Send</button>
+                                            <input type="text" class="form-control" id="message-input" placeholder="Discuter avec l'assistant Sam...">
+                                            <button class="btn btn-primary" id="send-btn" type="button">Envoyer</button>
                                         </div>
-                                        <button class="btn btn-danger" id="clear-btn" type="button">Clear session</button>
+                                        <button class="btn btn-danger" id="clear-btn" type="button"><i class="fa-solid fa-rotate-right"></i></button>
                                     </div>
                                 </div>
                                 <script>
                                     $(document).ready(function() {
-                                        conversation_id = uuidv4();
-
+                                        var conversation_id = uuidv4();
+                                        var conversation_history = [];
 
                                         $('#send-btn').click(function() {
                                             var message = $('#message-input').val();
@@ -183,11 +183,14 @@
                                             // Clear the input field
                                             $('#message-input').val('');
 
-                                            // Send the message to the server and get the assistant's response
+                                            // Add the user's message to the conversation history
+                                            conversation_history.push({ role: 'user', content: message });
+
+                                            // Send the conversation history to the server and get the assistant's response
                                             $.ajax({
                                                 type: 'POST',
                                                 url: '/chat',
-                                                data: JSON.stringify({ message: message, conversation_id: conversation_id }),
+                                                data: JSON.stringify({ conversation_history: conversation_history, conversation_id: conversation_id }),
                                                 contentType: 'application/json;charset=UTF-8',
                                                 dataType: 'json',
                                                 success: function(data) {
@@ -198,6 +201,9 @@
 
                                                     // Scroll to the bottom of the chat area
                                                     $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
+
+                                                    // Add the assistant's response to the conversation history
+                                                    conversation_history.push({ role: 'assistant', content: response });
                                                 },
                                                 error: function(jqXHR, textStatus, errorThrown) {
                                                     console.log(textStatus + ': ' + errorThrown);
@@ -218,10 +224,13 @@
 
                                             // Effacer les messages de la zone de discussion
                                             $('#chat-area').empty();
+
+                                            // Effacer l'historique de la conversation
+                                            conversation_history = [];
                                         });
                                     });
-
                                 </script>
+
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

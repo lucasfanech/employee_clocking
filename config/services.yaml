@@ -27,3 +27,6 @@ services:
     App\Controller\ChatController:
         arguments:
             $client: '@Symfony\Contracts\HttpClient\HttpClientInterface'
+            $conversationHistoryService: '@App\Service\ConversationHistoryService'
+
+    App\Service\ConversationHistoryService: ~
