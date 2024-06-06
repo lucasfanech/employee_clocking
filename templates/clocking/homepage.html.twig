@@ -186,6 +186,13 @@
                                             // Add the user's message to the conversation history
                                             conversation_history.push({ role: 'user', content: message });
 
+                                            // Show the loading indicator
+                                            isLoading = true;
+                                            $('#chat-area').append('<div class="d-flex justify-content-start mb-2"><div class="p-2 text-secondary loading-indicator"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sam est en train de répondre...</div></div>');
+
+                                            // Scroll to the bottom of the chat area
+                                            $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
+
                                             // Send the conversation history to the server and get the assistant's response
                                             $.ajax({
                                                 type: 'POST',
@@ -195,6 +202,10 @@
                                                 dataType: 'json',
                                                 success: function(data) {
                                                     var response = data.response;
+
+                                                    // Remove the loading indicator
+                                                    isLoading = false;
+                                                    $('.loading-indicator').remove();
 
                                                     // Add the assistant's response to the chat area
                                                     $('#chat-area').append('<div class="d-flex justify-content-start mb-2"><div class="p-2 border bg-primary rounded-5 text-white">' + response + '</div></div>');
@@ -208,6 +219,10 @@
                                                 error: function(jqXHR, textStatus, errorThrown) {
                                                     console.log(textStatus + ': ' + errorThrown);
                                                     console.log(jqXHR.responseText);
+
+                                                    // Remove the loading indicator
+                                                    isLoading = false;
+                                                    $('.loading-indicator').remove();
                                                 }
                                             });
                                         });
