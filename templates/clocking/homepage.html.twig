@@ -148,13 +148,80 @@
                     <div class="modal-dialog modal-dialog-centered modal-xl">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h1 class="modal-title fs-5" id="gameModalLabel">Easter egg - La bataille navale</h1>
+                                <h1 class="modal-title fs-5" id="gameModalLabel">Easter Egg - Chatbot AI</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <!--- iframe of the game http://127.0.0.1:8080/games/bataile_navale/ -->
-                                <iframe src="http://127.0.0.1:8080/games/bataille_navale" width="100%" height="600px" frameborder="0"></iframe>
+                                <div id="chatbot" class="col-md-4 d-flex flex-column h-100" style="">
+                                    <div class="container mt-5">
+                                        <div class="chat-area" id="chat-area">
+                                        </div>
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control" id="message-input" placeholder="Discuter avec iTask...">
+                                            <button class="btn btn-primary" id="send-btn" type="button">Send</button>
+                                        </div>
+                                        <button class="btn btn-danger" id="clear-btn" type="button">Clear session</button>
+                                    </div>
+                                </div>
+                                <script>
+                                    $(document).ready(function() {
+                                        conversation_id = uuidv4();
 
+
+                                        $('#send-btn').click(function() {
+                                            var message = $('#message-input').val();
+                                            if (message.trim() === '') {
+                                                return;  // Ignore empty messages
+                                            }
+
+                                            // Add the user's message to the chat area
+                                            $('#chat-area').append('<div class="d-flex justify-content-end mb-2"><div class="p-2 border bg-light rounded-pill">' + message + '</div></div>');
+
+                                            // Scroll to the bottom of the chat area
+                                            $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
+
+                                            // Clear the input field
+                                            $('#message-input').val('');
+
+                                            // Send the message to the server and get the assistant's response
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '/chat',
+                                                data: JSON.stringify({ message: message, conversation_id: conversation_id }),
+                                                contentType: 'application/json;charset=UTF-8',
+                                                dataType: 'json',
+                                                success: function(data) {
+                                                    var response = data.response;
+
+                                                    // Add the assistant's response to the chat area
+                                                    $('#chat-area').append('<div class="d-flex justify-content-start mb-2"><div class="p-2 border bg-primary rounded-5 text-white">' + response + '</div></div>');
+
+                                                    // Scroll to the bottom of the chat area
+                                                    $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
+                                                },
+                                                error: function(jqXHR, textStatus, errorThrown) {
+                                                    console.log(textStatus + ': ' + errorThrown);
+                                                    console.log(jqXHR.responseText);
+                                                }
+                                            });
+                                        });
+
+                                        function uuidv4() {
+                                            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                                                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+                                            );
+                                        }
+
+                                        $('#clear-btn').click(function() {
+                                            // Effacer l'UUID de la conversation du stockage local
+                                            conversation_id = uuidv4();
+
+                                            // Effacer les messages de la zone de discussion
+                                            $('#chat-area').empty();
+                                        });
+                                    });
+
+                                </script>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
