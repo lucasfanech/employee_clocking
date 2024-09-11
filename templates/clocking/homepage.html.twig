@@ -152,99 +152,199 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <div id="chatbot" class=" d-flex flex-column h-100" style="">
-                                    <div class="container mt-5 p-5">
-                                        <div class="chat-area" id="chat-area">
-                                        </div>
-                                        <div class="input-group mb-3">
-                                            <input type="text" class="form-control" id="message-input" placeholder="Discuter avec l'assistant Sam...">
-                                            <button class="btn btn-primary" id="send-btn" type="button">Envoyer</button>
-                                        </div>
-                                        <button class="btn btn-danger" id="clear-btn" type="button"><i class="fa-solid fa-rotate-right"></i></button>
+                                <div id="game" class="d-flex " style="">
+                                    <div id="best-time">Best Time: <span id="best-time-value">N/A</span></div>
+                                    <div id="timer">Time: <span id="timer-value">0</span>s</div>
+                                    <div id="message" style="display: none;">
+                                        <span id="message-text"></span>
+                                        <button id="restart-button">Recommencer</button>
                                     </div>
+                                    <div id="minesweeper" class="grid"></div>
+
                                 </div>
                                 <script>
-                                    $(document).ready(function() {
-                                        var conversation_id = uuidv4();
-                                        var conversation_history = [];
+                                    const gridSize = 10;
+                                    const mineCount = 20;
+                                    let grid = [];
+                                    let timer;
+                                    let time = 0;
+                                    let bestTime = localStorage.getItem('bestTime') || 'N/A';
+                                    let gameStarted = false;
+                                    let gameEnded = false;
 
-                                        $('#send-btn').click(function() {
-                                            var message = $('#message-input').val();
-                                            if (message.trim() === '') {
-                                                return;  // Ignore empty messages
+                                    document.getElementById('best-time-value').innerText = bestTime;
+
+                                    function createGrid() {
+                                        const minesweeper = document.getElementById('minesweeper');
+                                        minesweeper.innerHTML = '';
+                                        grid = [];
+                                        for (let i = 0; i < gridSize; i++) {
+                                            const row = [];
+                                            for (let j = 0; j < gridSize; j++) {
+                                                const cell = document.createElement('div');
+                                                cell.classList.add('cell');
+                                                cell.dataset.row = i;
+                                                cell.dataset.col = j;
+                                                cell.addEventListener('click', handleCellClick);
+                                                minesweeper.appendChild(cell);
+                                                row.push({ element: cell, mine: false, revealed: false, adjacentMines: 0 });
                                             }
-
-                                            // Add the user's message to the chat area
-                                            $('#chat-area').append('<div class="d-flex justify-content-end mb-2"><div class="p-2 border bg-light rounded-pill">' + message + '</div></div>');
-
-                                            // Scroll to the bottom of the chat area
-                                            $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
-
-                                            // Clear the input field
-                                            $('#message-input').val('');
-
-                                            // Add the user's message to the conversation history
-                                            conversation_history.push({ role: 'user', content: message });
-
-                                            // Show the loading indicator
-                                            isLoading = true;
-                                            $('#chat-area').append('<div class="d-flex justify-content-start mb-2"><div class="p-2 text-secondary loading-indicator"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sam est en train de répondre...</div></div>');
-
-                                            // Scroll to the bottom of the chat area
-                                            $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
-
-                                            // Send the conversation history to the server and get the assistant's response
-                                            $.ajax({
-                                                type: 'POST',
-                                                url: '/chat',
-                                                data: JSON.stringify({ conversation_history: conversation_history, conversation_id: conversation_id }),
-                                                contentType: 'application/json;charset=UTF-8',
-                                                dataType: 'json',
-                                                success: function(data) {
-                                                    var response = data.response;
-
-                                                    // Remove the loading indicator
-                                                    isLoading = false;
-                                                    $('.loading-indicator').remove();
-
-                                                    // Add the assistant's response to the chat area
-                                                    $('#chat-area').append('<div class="d-flex justify-content-start mb-2"><div class="p-2 border bg-primary rounded-5 text-white">' + response + '</div></div>');
-
-                                                    // Scroll to the bottom of the chat area
-                                                    $('#chat-area').animate({ scrollTop: $('#chat-area')[0].scrollHeight }, 1000);
-
-                                                    // Add the assistant's response to the conversation history
-                                                    conversation_history.push({ role: 'assistant', content: response });
-                                                },
-                                                error: function(jqXHR, textStatus, errorThrown) {
-                                                    console.log(textStatus + ': ' + errorThrown);
-                                                    console.log(jqXHR.responseText);
-
-                                                    // Remove the loading indicator
-                                                    isLoading = false;
-                                                    $('.loading-indicator').remove();
-                                                }
-                                            });
-                                        });
-
-                                        function uuidv4() {
-                                            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-                                                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-                                            );
+                                            grid.push(row);
                                         }
+                                        placeMines();
+                                        calculateAdjacentMines();
+                                    }
 
-                                        $('#clear-btn').click(function() {
-                                            // Effacer l'UUID de la conversation du stockage local
-                                            conversation_id = uuidv4();
+                                    function placeMines() {
+                                        let placedMines = 0;
+                                        while (placedMines < mineCount) {
+                                            const row = Math.floor(Math.random() * gridSize);
+                                            const col = Math.floor(Math.random() * gridSize);
+                                            if (!grid[row][col].mine) {
+                                                grid[row][col].mine = true;
+                                                placedMines++;
+                                            }
+                                        }
+                                    }
 
-                                            // Effacer les messages de la zone de discussion
-                                            $('#chat-area').empty();
+                                    function calculateAdjacentMines() {
+                                        for (let i = 0; i < gridSize; i++) {
+                                            for (let j = 0; j < gridSize; j++) {
+                                                if (grid[i][j].mine) continue;
+                                                let adjacentMines = 0;
+                                                for (let x = -1; x <= 1; x++) {
+                                                    for (let y = -1; y <= 1; y++) {
+                                                        const newRow = i + x;
+                                                        const newCol = j + y;
+                                                        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize && grid[newRow][newCol].mine) {
+                                                            adjacentMines++;
+                                                        }
+                                                    }
+                                                }
+                                                grid[i][j].adjacentMines = adjacentMines;
+                                            }
+                                        }
+                                    }
 
-                                            // Effacer l'historique de la conversation
-                                            conversation_history = [];
-                                        });
+                                    function handleCellClick(event) {
+                                        if (gameEnded) return;
+                                        if (!gameStarted) {
+                                            gameStarted = true;
+                                            startTimer();
+                                        }
+                                        const row = parseInt(event.target.dataset.row);
+                                        const col = parseInt(event.target.dataset.col);
+                                        revealCell(row, col);
+                                    }
+
+                                    function revealCell(row, col) {
+                                        const cell = grid[row][col];
+                                        if (cell.revealed) return;
+                                        cell.revealed = true;
+                                        cell.element.classList.add('revealed');
+                                        if (cell.mine) {
+                                            cell.element.innerHTML = '<img src="{{ asset('IMG/identity_picture.png') }}" alt="Mine">';
+                                            endGame(false);
+                                        } else {
+                                            cell.element.innerText = cell.adjacentMines > 0 ? cell.adjacentMines : '';
+                                            if (cell.adjacentMines === 0) {
+                                                for (let x = -1; x <= 1; x++) {
+                                                    for (let y = -1; y <= 1; y++) {
+                                                        const newRow = row + x;
+                                                        const newCol = col + y;
+                                                        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+                                                            revealCell(newRow, newCol);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            checkWin();
+                                        }
+                                    }
+
+                                    function startTimer() {
+                                        timer = setInterval(() => {
+                                            time++;
+                                            document.getElementById('timer-value').innerText = time;
+                                        }, 1000);
+                                    }
+
+                                    function stopTimer() {
+                                        clearInterval(timer);
+                                    }
+
+                                    function endGame(won) {
+                                        gameEnded = true;
+                                        stopTimer();
+                                        const message = document.getElementById('message');
+                                        const messageText = document.getElementById('message-text');
+                                        if (won) {
+                                            messageText.innerText = 'Vous avez gagné!';
+                                            if (bestTime === 'N/A' || time < bestTime) {
+                                                bestTime = time;
+                                                localStorage.setItem('bestTime', bestTime);
+                                                document.getElementById('best-time-value').innerText = bestTime;
+                                            }
+                                        } else {
+                                            messageText.innerText = 'Vous avez perdu!';
+                                        }
+                                        message.style.display = 'block';
+                                    }
+
+                                    function checkWin() {
+                                        let revealedCount = 0;
+                                        for (let i = 0; i < gridSize; i++) {
+                                            for (let j = 0; j < gridSize; j++) {
+                                                if (grid[i][j].revealed) revealedCount++;
+                                            }
+                                        }
+                                        if (revealedCount === gridSize * gridSize - mineCount) {
+                                            endGame(true);
+                                        }
+                                    }
+
+                                    document.getElementById('restart-button').addEventListener('click', () => {
+                                        gameStarted = false;
+                                        gameEnded = false;
+                                        time = 0;
+                                        document.getElementById('timer-value').innerText = time;
+                                        document.getElementById('message').style.display = 'none';
+                                        createGrid();
                                     });
+
+                                    createGrid();
                                 </script>
+                                <style>
+                                    .grid {
+                                        display: grid;
+                                        grid-template-columns: repeat(10, 1fr);
+                                        gap: 2px;
+                                    }
+                                    .cell {
+                                        width: 30px;
+                                        height: 30px;
+                                        background-color: #ccc;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        cursor: pointer;
+                                    }
+                                    .cell.revealed {
+                                        background-color: #eee;
+                                        cursor: default;
+                                    }
+                                    .cell img {
+                                        width: 100%;
+                                        height: 100%;
+                                        object-fit: contain;
+                                    }
+                                    #timer, #best-time {
+                                        margin-bottom: 10px;
+                                    }
+                                    #message {
+                                        margin-top: 20px;
+                                    }
+                                </style>
 
                             </div>
                             <div class="modal-footer">
