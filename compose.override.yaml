@@ -1,0 +1,43 @@
+# Development overrides, loaded automatically by `docker compose up`.
+#  - source tree bind-mounted into php and nginx (live reload of PHP code)
+#  - Xdebug available (XDEBUG_MODE=debug docker compose up)
+#  - node service compiling the assets in watch mode
+#  - MySQL exposed on the host for local tooling
+
+services:
+  database:
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+
+  php:
+    build:
+      target: php_dev
+    environment:
+      APP_ENV: dev
+      APP_SECRET: ${APP_SECRET:-dev_secret_change_me}
+      XDEBUG_MODE: ${XDEBUG_MODE:-off}
+    volumes:
+      - ./:/app
+      - app-var:/app/var
+      - composer-cache:/tmp/composer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  nginx:
+    volumes:
+      - ./public:/app/public:ro
+
+  node:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install --no-audit --no-fund && npm run watch"
+    volumes:
+      - ./:/app
+      - node-modules:/app/node_modules
+    environment:
+      NODE_ENV: development
+    restart: unless-stopped
+
+volumes:
+  composer-cache:
+  node-modules:

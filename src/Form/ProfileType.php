@@ -1,21 +1,22 @@
 <?php
-// src/Form/ProfileType.php
+
+declare(strict_types=1);
 
 namespace App\Form;
 
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class ProfileType extends AbstractType
+final class ProfileType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('email')
-            // Ajoutez d'autres champs si nécessaire
-        ;
+        $builder->add('email', EmailType::class, [
+            'label' => 'E-mail',
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

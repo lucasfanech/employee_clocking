@@ -1,0 +1,77 @@
+# Production-like stack: nginx → php-fpm, MySQL 8.4 LTS, phpMyAdmin.
+# `docker compose up -d` also loads compose.override.yaml (development setup).
+# For a production-like run: docker compose -f compose.yaml up -d --build
+
+name: employee-clocking
+
+services:
+  database:
+    image: mysql:8.4
+    command: --mysql-native-password=ON
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-clocking}
+      MYSQL_USER: ${MYSQL_USER:-clocking}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-clocking}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    environment:
+      PMA_HOST: database
+      PMA_USER: ${MYSQL_USER:-clocking}
+      PMA_PASSWORD: ${MYSQL_PASSWORD:-clocking}
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  php:
+    build:
+      context: .
+      target: php
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      APP_SECRET: ${APP_SECRET:?Set APP_SECRET in .env.local or the environment}
+      DATABASE_URL: mysql://${MYSQL_USER:-clocking}:${MYSQL_PASSWORD:-clocking}@database:3306/${MYSQL_DATABASE:-clocking}?serverVersion=8.4&charset=utf8mb4
+      DEFAULT_URI: http://localhost:${APP_PORT:-8000}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@example.com}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-}
+      TZ: ${TZ:-Europe/Paris}
+    volumes:
+      - app-var:/app/var
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "php -r 'exit((int) !is_file(\"/app/var/cache/prod\") && (int) !is_dir(\"/app/var/cache\"));'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    ports:
+      - "${APP_PORT:-8000}:80"
+    depends_on:
+      - php
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  app-var:

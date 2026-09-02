@@ -1,0 +1,79 @@
+{#
+    Application form theme: Symfony's Tailwind layout with the project's component classes
+    (see assets/styles/app.css) plus the widget of the custom DurationType.
+#}
+{% use 'tailwind_2_layout.html.twig' %}
+
+{%- block form_row -%}
+    {%- set row_class = row_class|default('block') -%}
+    {{- parent() -}}
+{%- endblock form_row -%}
+
+{%- block widget_attributes -%}
+    {%- set widget_class = widget_class|default('input') -%}
+    {%- set widget_disabled_class = widget_disabled_class|default('') -%}
+    {%- set widget_errors_class = widget_errors_class|default('input-invalid') -%}
+    {{- parent() -}}
+{%- endblock widget_attributes -%}
+
+{%- block form_label -%}
+    {%- set label_class = label_class|default('label mb-1') -%}
+    {{- parent() -}}
+{%- endblock form_label -%}
+
+{%- block form_help -%}
+    {%- set help_class = help_class|default('help') -%}
+    {{- parent() -}}
+{%- endblock form_help -%}
+
+{%- block form_errors -%}
+    {%- set error_item_class = error_item_class|default('error') -%}
+    {{- parent() -}}
+{%- endblock form_errors -%}
+
+{%- block checkbox_widget -%}
+    {%- set widget_class = widget_class|default('checkbox') -%}
+    {{- parent() -}}
+{%- endblock checkbox_widget -%}
+
+{%- block radio_widget -%}
+    {%- set widget_class = widget_class|default('checkbox') -%}
+    {{- parent() -}}
+{%- endblock radio_widget -%}
+
+{%- block checkbox_row -%}
+    {%- set row_attr = row_attr|merge({class: row_attr.class|default(row_class|default('block'))}) -%}
+    <div{% with {attr: row_attr} %}{{ block('attributes') }}{% endwith %}>
+        <label class="inline-flex items-center gap-2 text-sm text-stone-700">
+            {{- form_widget(form) -}}
+            {{- label is not same as(false) ? (label|default(name|humanize)|trans({}, translation_domain)) -}}
+        </label>
+        {{- form_errors(form) -}}
+        {{- form_help(form) -}}
+    </div>
+{%- endblock checkbox_row -%}
+
+{%- block choice_widget_expanded -%}
+    {%- set attr = attr|merge({class: attr.class|default('mt-2 flex flex-wrap gap-x-6 gap-y-2')}) -%}
+    <div {{ block('widget_container_attributes') }}>
+        {%- for child in form %}
+            <div class="flex items-center gap-2 text-sm text-stone-700">
+                {{- form_widget(child) -}}
+                {{- form_label(child, null, {translation_domain: choice_translation_domain, label_class: 'text-sm text-stone-700'}) -}}
+            </div>
+        {% endfor -%}
+    </div>
+{%- endblock choice_widget_expanded -%}
+
+{# ---- DurationType: hours + minutes side by side ---- #}
+{%- block duration_widget -%}
+    {%- set attr = attr|merge({class: (attr.class|default('') ~ ' flex items-center gap-2')|trim}) -%}
+    <div {{ block('widget_container_attributes') }}>
+        {{- form_widget(form.hours, {attr: {class: 'input w-24 font-mono'}}) -}}
+        <span class="text-sm text-stone-500">h</span>
+        {{- form_widget(form.minutes, {attr: {class: 'input w-24 font-mono'}}) -}}
+        <span class="text-sm text-stone-500">min</span>
+    </div>
+    {{- form_errors(form.hours) -}}
+    {{- form_errors(form.minutes) -}}
+{%- endblock duration_widget -%}

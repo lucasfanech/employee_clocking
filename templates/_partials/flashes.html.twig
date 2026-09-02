@@ -1,0 +1,22 @@
+{% import '_partials/icons.html.twig' as icons %}
+{% set flash_styles = {
+    'success': {class: 'alert-success', icon: 'check'},
+    'warning': {class: 'alert-warning', icon: 'alert'},
+    'danger':  {class: 'alert-danger',  icon: 'alert'},
+    'error':   {class: 'alert-danger',  icon: 'alert'},
+    'info':    {class: 'alert-info',    icon: 'info'},
+} %}
+{% set flashes = app.flashes %}
+{% if flashes|length > 0 %}
+    <div class="mb-6 space-y-3" role="status">
+        {% for type, messages in flashes %}
+            {% set style = flash_styles[type]|default(flash_styles.info) %}
+            {% for message in messages %}
+                <div class="alert {{ style.class }}">
+                    {{ icons.icon(style.icon, 'h-5 w-5 shrink-0 mt-0.5') }}
+                    <div>{{ message }}</div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+{% endif %}

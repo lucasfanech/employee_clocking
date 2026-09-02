@@ -1,34 +1,35 @@
-{# templates/security/login.html.twig #}
+{% extends '_partials/auth_layout.html.twig' %}
+{% import '_partials/icons.html.twig' as icons %}
 
-{% extends 'base.html.twig' %}
+{% block title %}Sign in · Clocking{% endblock %}
+{% block auth_heading %}Welcome back{% endblock %}
+{% block auth_subheading %}Sign in to your clocking sheet.{% endblock %}
 
-{% block body %}
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <h2 class="mb-4">Connexion</h2>
-
-                {% if error %}
-                    <div class="alert alert-danger" role="alert">
-                        {{ error.messageKey|trans(error.messageData, 'security') }}
-                    </div>
-                {% endif %}
-
-                <form method="post" action="{{ path('login') }}">
-
-                    <div class="form-group">
-                        <label for="inputEmail">Email</label>
-                        <input type="email" name="_username" id="inputEmail" class="form-control" value="{{ last_username }}" required autofocus>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="inputPassword">Mot de passe</label>
-                        <input type="password" name="_password" id="inputPassword" class="form-control" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Connexion</button>
-                </form>
-            </div>
+{% block auth_form %}
+    {% if error %}
+        <div class="alert alert-danger mb-6">
+            {{ icons.icon('alert', 'h-5 w-5 shrink-0 mt-0.5') }}
+            <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         </div>
-    </div>
+    {% endif %}
+
+    <form method="post" action="{{ path('app_login') }}" class="space-y-5">
+        <div>
+            <label for="username" class="label mb-1">E-mail</label>
+            <input type="email" name="_username" id="username" value="{{ last_username }}" class="input" autocomplete="email" required autofocus>
+        </div>
+        <div>
+            <label for="password" class="label mb-1">Password</label>
+            <input type="password" name="_password" id="password" class="input" autocomplete="current-password" required>
+        </div>
+        <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+        <button type="submit" class="btn btn-primary w-full py-2.5">
+            {{ icons.icon('login', 'h-5 w-5') }}
+            Sign in
+        </button>
+    </form>
+{% endblock %}
+
+{% block auth_footer %}
+    No account yet? <a href="{{ path('app_register') }}" class="font-semibold text-brand-700 hover:text-brand-800">Create one</a>.
 {% endblock %}

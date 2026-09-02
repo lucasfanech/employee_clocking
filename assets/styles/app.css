@@ -1,6 +1,173 @@
-@import '~bootstrap';
-@import '~@fortawesome/fontawesome-free/css/all.css';
+@import "tailwindcss";
 
-body {
-    background-color: ghostwhite;
+@source "../../templates";
+@source "../controllers";
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                        */
+/* ------------------------------------------------------------------ */
+@theme {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* Brand: deep teal */
+    --color-brand-50: oklch(0.98 0.02 185);
+    --color-brand-100: oklch(0.95 0.05 185);
+    --color-brand-200: oklch(0.90 0.09 185);
+    --color-brand-300: oklch(0.82 0.12 185);
+    --color-brand-400: oklch(0.72 0.13 185);
+    --color-brand-500: oklch(0.62 0.12 185);
+    --color-brand-600: oklch(0.53 0.11 185);
+    --color-brand-700: oklch(0.45 0.09 185);
+    --color-brand-800: oklch(0.38 0.07 185);
+    --color-brand-900: oklch(0.30 0.05 185);
+    --color-brand-950: oklch(0.22 0.04 185);
+
+    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                 */
+/* ------------------------------------------------------------------ */
+@layer base {
+    html {
+        @apply antialiased text-stone-800 bg-stone-50;
+    }
+
+    body {
+        @apply min-h-screen flex flex-col;
+    }
+
+    ::selection {
+        @apply bg-brand-200 text-brand-950;
+    }
+}
+
+/* `input` is a utility so that other component classes can @apply it. */
+@utility input {
+    @apply block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm
+           ring-1 ring-stone-300 ring-inset placeholder:text-stone-400
+           focus:ring-2 focus:ring-brand-600 focus:outline-none
+           disabled:bg-stone-100 disabled:text-stone-400;
+}
+
+/* ------------------------------------------------------------------ */
+/* Components                                                           */
+/* ------------------------------------------------------------------ */
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap
+               transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500
+               disabled:cursor-not-allowed disabled:opacity-50;
+    }
+    .btn-sm {
+        @apply px-3 py-1.5 text-xs;
+    }
+    .btn-primary {
+        @apply bg-brand-700 text-white hover:bg-brand-800 shadow-sm;
+    }
+    .btn-secondary {
+        @apply bg-white text-stone-800 ring-1 ring-stone-200 ring-inset hover:bg-stone-50;
+    }
+    .btn-ghost {
+        @apply text-stone-600 hover:bg-stone-100 hover:text-stone-900;
+    }
+    .btn-danger {
+        @apply bg-rose-600 text-white hover:bg-rose-700;
+    }
+    .btn-danger-outline {
+        @apply text-rose-700 ring-1 ring-rose-200 ring-inset hover:bg-rose-50;
+    }
+    .btn-icon {
+        @apply h-9 w-9 p-0 rounded-full;
+    }
+
+    .card {
+        @apply rounded-2xl bg-white shadow-card ring-1 ring-stone-900/5;
+    }
+    .card-body {
+        @apply p-5 sm:p-6;
+    }
+
+    .input-invalid {
+        @apply ring-rose-400 focus:ring-rose-500;
+    }
+    .label {
+        @apply block text-sm font-medium text-stone-700;
+    }
+    .help {
+        @apply mt-1 text-xs text-stone-500;
+    }
+    .error {
+        @apply mt-1 text-sm text-rose-600;
+    }
+    .checkbox {
+        @apply h-4 w-4 rounded border-stone-300 accent-brand-700 focus-visible:outline-brand-600;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums whitespace-nowrap;
+    }
+    .badge-neutral {
+        @apply bg-stone-100 text-stone-600;
+    }
+    .badge-positive {
+        @apply bg-emerald-100 text-emerald-800;
+    }
+    .badge-negative {
+        @apply bg-rose-100 text-rose-800;
+    }
+    .badge-warning {
+        @apply bg-amber-100 text-amber-800;
+    }
+
+    .alert {
+        @apply flex items-start gap-3 rounded-xl px-4 py-3 text-sm ring-1 ring-inset;
+    }
+    .alert-success {
+        @apply bg-emerald-50 text-emerald-900 ring-emerald-200;
+    }
+    .alert-warning {
+        @apply bg-amber-50 text-amber-900 ring-amber-200;
+    }
+    .alert-danger {
+        @apply bg-rose-50 text-rose-900 ring-rose-200;
+    }
+    .alert-info {
+        @apply bg-brand-50 text-brand-900 ring-brand-200;
+    }
+
+    .nav-link {
+        @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-600
+               hover:bg-stone-100 hover:text-stone-900 transition-colors;
+    }
+    .nav-link-active {
+        @apply bg-brand-50 text-brand-800;
+    }
+
+    .clocking-time {
+        @apply input px-1.5 py-1.5 text-center font-mono text-xs tabular-nums;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/* Easter egg: minesweeper                                              */
+/* ------------------------------------------------------------------ */
+.mine-grid {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 3px;
+}
+.mine-cell {
+    @apply aspect-square flex items-center justify-center rounded-md bg-stone-300 text-sm font-bold text-stone-700
+           cursor-pointer select-none hover:bg-stone-400 transition-colors;
+}
+.mine-cell.is-revealed {
+    @apply bg-stone-100 cursor-default hover:bg-stone-100;
+}
+.mine-cell.is-mine {
+    @apply bg-rose-100 p-0.5;
+}
+.mine-cell img {
+    @apply h-full w-full object-contain rounded;
 }

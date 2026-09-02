@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+{% import '_partials/icons.html.twig' as icons %}
+
+{#
+    Two-column layout shared by the sign-in and sign-up pages.
+    Children fill: title, auth_heading, auth_subheading, auth_form, auth_footer.
+#}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block main %}
+    <div class="grid min-h-screen lg:grid-cols-2">
+        <aside class="relative hidden overflow-hidden bg-brand-900 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_30rem_at_20%_100%,theme(--color-brand-700),transparent)]"></div>
+            <a href="{{ path('app_landing') }}" class="relative flex items-center gap-2.5 font-bold">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
+                    {{ icons.icon('clock', 'h-5 w-5') }}
+                </span>
+                <span class="text-lg tracking-tight">Clocking</span>
+            </a>
+            <div class="relative max-w-md">
+                <h2 class="text-3xl font-bold leading-tight">Every minute counted, to the minute.</h2>
+                <ul class="mt-6 space-y-3 text-brand-100">
+                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-brand-300') }} Daily balance against your weekly target</li>
+                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-brand-300') }} Cumulated balance from Monday to Friday</li>
+                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-brand-300') }} Live estimate of the time you can leave</li>
+                </ul>
+            </div>
+            <p class="relative text-xs text-brand-200">Self-hosted · your data stays on your server</p>
+        </aside>
+
+        <div class="flex flex-col px-4 py-10 sm:px-8 lg:px-16 lg:py-16">
+            <a href="{{ path('app_landing') }}" class="mb-10 flex items-center gap-2.5 font-bold text-stone-900 lg:hidden">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white">{{ icons.icon('clock', 'h-5 w-5') }}</span>
+                Clocking
+            </a>
+            <div class="m-auto w-full max-w-md">
+                <h1 class="text-3xl font-bold tracking-tight text-stone-900">{% block auth_heading %}{% endblock %}</h1>
+                <p class="mt-2 text-sm text-stone-600">{% block auth_subheading %}{% endblock %}</p>
+                <div class="mt-8">
+                    {% include '_partials/flashes.html.twig' %}
+                    {% block auth_form %}{% endblock %}
+                </div>
+                <p class="mt-8 text-center text-sm text-stone-600">{% block auth_footer %}{% endblock %}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

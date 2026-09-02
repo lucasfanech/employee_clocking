@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+{% import '_partials/icons.html.twig' as icons %}
+
+{% block title %}Profile · Clocking{% endblock %}
+
+{% block body %}
+    <div class="mx-auto max-w-4xl">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold tracking-tight text-stone-900">Profile</h1>
+            <p class="mt-1 text-sm text-stone-600">Signed in as <span class="font-semibold">{{ app.user.email }}</span>{% if is_granted('ROLE_ADMIN') %} · <span class="badge badge-positive">administrator</span>{% endif %}</p>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2">
+            <section class="card card-body">
+                <h2 class="flex items-center gap-2 text-base font-semibold text-stone-900">
+                    {{ icons.icon('user', 'h-5 w-5 text-brand-700') }}
+                    Account
+                </h2>
+                {{ form_start(profile_form, {attr: {class: 'mt-4 space-y-4', novalidate: 'novalidate'}}) }}
+                    {{ form_row(profile_form.email) }}
+                    <button type="submit" class="btn btn-primary">Update e-mail</button>
+                {{ form_end(profile_form) }}
+            </section>
+
+            <section class="card card-body">
+                <h2 class="flex items-center gap-2 text-base font-semibold text-stone-900">
+                    {{ icons.icon('key', 'h-5 w-5 text-brand-700') }}
+                    Password
+                </h2>
+                {{ form_start(password_form, {attr: {class: 'mt-4 space-y-4', novalidate: 'novalidate'}}) }}
+                    {{ form_row(password_form.plainPassword.first) }}
+                    {{ form_row(password_form.plainPassword.second) }}
+                    <button type="submit" class="btn btn-primary">Change password</button>
+                {{ form_end(password_form) }}
+            </section>
+        </div>
+
+        <section class="card card-body mt-6 ring-rose-200">
+            <h2 class="flex items-center gap-2 text-base font-semibold text-rose-700">
+                {{ icons.icon('alert', 'h-5 w-5') }}
+                Danger zone
+            </h2>
+            <p class="mt-2 text-sm text-stone-600">Delete every clocking time and day off of your account. Your working hours are kept.</p>
+            <form method="post" action="{{ path('app_profile_reset_data') }}" class="mt-4"
+                  data-controller="confirm" data-confirm-message-value="Delete all your clocking data? This cannot be undone." data-action="submit->confirm#ask">
+                <input type="hidden" name="_token" value="{{ csrf_token('reset-data') }}">
+                <button type="submit" class="btn btn-danger-outline">
+                    {{ icons.icon('trash', 'h-4 w-4') }}
+                    Reset all my clocking data
+                </button>
+            </form>
+        </section>
+    </div>
+{% endblock %}

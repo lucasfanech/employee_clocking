@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% import '_partials/icons.html.twig' as icons %}
+
+{% block title %}Working hours · Clocking{% endblock %}
+
+{% block body %}
+    <div class="mx-auto max-w-3xl">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold tracking-tight text-stone-900">Working hours</h1>
+            <p class="mt-1 text-sm text-stone-600">
+                {% if is_new %}
+                    Welcome! Check the defaults below and save them to start clocking.
+                {% else %}
+                    These rules drive every balance and estimate on your week page.
+                {% endif %}
+            </p>
+        </div>
+
+        {{ form_start(form, {attr: {class: 'space-y-6', novalidate: 'novalidate'}}) }}
+            <section class="card card-body">
+                <h2 class="flex items-center gap-2 text-base font-semibold text-stone-900">
+                    {{ icons.icon('chart', 'h-5 w-5 text-brand-700') }}
+                    Weekly target
+                </h2>
+                <div class="mt-4">
+                    {{ form_row(form.weeklyMinutes) }}
+                    <p class="text-xs text-stone-500">
+                        Current daily target: <span class="font-mono font-semibold tabular-nums">{{ schedule.dailyMinutes|duration_minutes }}</span>
+                        ({{ schedule.weeklyMinutes|duration_minutes }} ÷ 5).
+                    </p>
+                </div>
+            </section>
+
+            <section class="card card-body">
+                <h2 class="flex items-center gap-2 text-base font-semibold text-stone-900">
+                    {{ icons.icon('coffee', 'h-5 w-5 text-brand-700') }}
+                    Lunch break
+                </h2>
+                <div class="mt-4 grid gap-6 sm:grid-cols-2">
+                    {{ form_row(form.lunchBreakMinutes) }}
+                    {{ form_row(form.shortLunchBreakMinutes) }}
+                </div>
+                {{ form_row(form.shortLunchBreakDays) }}
+            </section>
+
+            <div class="flex items-center justify-end gap-3">
+                <a href="{{ path('app_home') }}" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {{ icons.icon('save', 'h-4 w-4') }}
+                    Save
+                </button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

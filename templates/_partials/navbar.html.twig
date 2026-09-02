@@ -1,0 +1,77 @@
+{% import '_partials/icons.html.twig' as icons %}
+{% set route = app.request.attributes.get('_route') %}
+{% set nav_links = [
+    {route: 'app_home', match: ['app_home', 'app_week'], label: 'My week', icon: 'calendar'},
+    {route: 'app_schedule', match: ['app_schedule'], label: 'Working hours', icon: 'cog'},
+] %}
+{% if is_granted('ROLE_ADMIN') %}
+    {% set nav_links = nav_links|merge([{route: 'admin_users', match: ['admin_dashboard', 'admin_users', 'admin_user_new'], label: 'Accounts', icon: 'users'}]) %}
+{% endif %}
+
+<header class="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 backdrop-blur" data-controller="toggle">
+    <nav class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8" aria-label="Main">
+        <a href="{{ path(app.user ? 'app_home' : 'app_landing') }}" class="flex items-center gap-2.5 font-bold text-stone-900">
+            <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white shadow-sm">
+                {{ icons.icon('clock', 'h-5 w-5') }}
+            </span>
+            <span class="text-lg tracking-tight">Clocking</span>
+        </a>
+
+        {% if app.user %}
+            <div class="hidden items-center gap-1 md:flex">
+                {% for link in nav_links %}
+                    <a href="{{ path(link.route) }}" class="nav-link{% if route in link.match %} nav-link-active{% endif %}">
+                        {{ icons.icon(link.icon, 'h-4 w-4') }}
+                        {{ link.label }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <div class="hidden items-center gap-2 md:flex">
+                <a href="{{ path('app_profile') }}" class="nav-link{% if route == 'app_profile' %} nav-link-active{% endif %}" title="{{ app.user.email }}">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-xs font-bold uppercase text-brand-800">
+                        {{ app.user.displayName|first }}
+                    </span>
+                    {{ app.user.displayName }}
+                </a>
+                <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm" title="Sign out">
+                    {{ icons.icon('logout', 'h-4 w-4') }}
+                    <span class="sr-only">Sign out</span>
+                </a>
+            </div>
+
+            <button type="button" class="btn btn-ghost btn-icon md:hidden" data-action="toggle#toggle" aria-label="Open menu">
+                {{ icons.icon('menu', 'h-5 w-5') }}
+            </button>
+        {% else %}
+            <div class="flex items-center gap-2">
+                <a href="{{ path('app_login') }}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
+                <a href="{{ path('app_register') }}" class="btn btn-primary px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm">
+                    Create account
+                    {{ icons.icon('arrow-right', 'h-4 w-4') }}
+                </a>
+            </div>
+        {% endif %}
+    </nav>
+
+    {% if app.user %}
+        <div class="border-t border-stone-200 bg-white px-4 py-3 md:hidden" data-toggle-target="panel" hidden>
+            <div class="flex flex-col gap-1">
+                {% for link in nav_links %}
+                    <a href="{{ path(link.route) }}" class="nav-link{% if route in link.match %} nav-link-active{% endif %}">
+                        {{ icons.icon(link.icon, 'h-4 w-4') }}
+                        {{ link.label }}
+                    </a>
+                {% endfor %}
+                <a href="{{ path('app_profile') }}" class="nav-link{% if route == 'app_profile' %} nav-link-active{% endif %}">
+                    {{ icons.icon('user', 'h-4 w-4') }}
+                    {{ app.user.displayName }}
+                </a>
+                <a href="{{ path('app_logout') }}" class="nav-link">
+                    {{ icons.icon('logout', 'h-4 w-4') }}
+                    Sign out
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</header>
