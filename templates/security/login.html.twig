@@ -1,9 +1,9 @@
 {% extends '_partials/auth_layout.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
 
-{% block title %}Sign in · Clocking{% endblock %}
-{% block auth_heading %}Welcome back{% endblock %}
-{% block auth_subheading %}Sign in to your clocking sheet.{% endblock %}
+{% block title %}{{ 'Sign in'|trans }} · Clocking{% endblock %}
+{% block auth_heading %}{{ 'Welcome back'|trans }}{% endblock %}
+{% block auth_subheading %}{{ 'Sign in to open your time card.'|trans }}{% endblock %}
 
 {% block auth_form %}
     {% if error %}
@@ -15,21 +15,21 @@
 
     <form method="post" action="{{ path('app_login') }}" class="space-y-5">
         <div>
-            <label for="username" class="label mb-1">E-mail</label>
+            <label for="username" class="label mb-1">{{ 'E-mail'|trans }}</label>
             <input type="email" name="_username" id="username" value="{{ last_username }}" class="input" autocomplete="email" required autofocus>
         </div>
         <div>
-            <label for="password" class="label mb-1">Password</label>
+            <label for="password" class="label mb-1">{{ 'Password'|trans }}</label>
             <input type="password" name="_password" id="password" class="input" autocomplete="current-password" required>
         </div>
         <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
         <button type="submit" class="btn btn-primary w-full py-2.5">
             {{ icons.icon('login', 'h-5 w-5') }}
-            Sign in
+            {{ 'Sign in'|trans }}
         </button>
     </form>
 {% endblock %}
 
 {% block auth_footer %}
-    No account yet? <a href="{{ path('app_register') }}" class="font-semibold text-brand-700 hover:text-brand-800">Create one</a>.
+    {{ 'No account yet?'|trans }} <a href="{{ path('app_register') }}" class="font-semibold text-cobalt-600 hover:text-cobalt-700">{{ 'Create one'|trans }}</a>.
 {% endblock %}

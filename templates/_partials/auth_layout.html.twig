@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
+{% import '_partials/flap.html.twig' as flap %}
 
 {#
     Two-column layout shared by the sign-in and sign-up pages.
@@ -9,39 +10,42 @@
 {% block footer %}{% endblock %}
 
 {% block main %}
-    <div class="grid min-h-screen lg:grid-cols-2">
-        <aside class="relative hidden overflow-hidden bg-brand-900 text-white lg:flex lg:flex-col lg:justify-between lg:p-12">
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_30rem_at_20%_100%,theme(--color-brand-700),transparent)]"></div>
-            <a href="{{ path('app_landing') }}" class="relative flex items-center gap-2.5 font-bold">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
-                    {{ icons.icon('clock', 'h-5 w-5') }}
-                </span>
-                <span class="text-lg tracking-tight">Clocking</span>
+    <div class="grid min-h-screen lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+        <aside class="band relative hidden overflow-hidden lg:flex lg:flex-col lg:justify-between lg:p-12">
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_28rem_at_10%_100%,rgb(43_76_242_/_0.35),transparent_70%)]"></div>
+            <a href="{{ path('app_landing') }}" class="relative flex items-center gap-2.5 text-white">
+                <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-800 text-amber-400 ring-1 ring-white/10">{{ icons.icon('clock', 'h-5 w-5') }}</span>
+                <span class="font-display text-lg font-bold tracking-tight">Clocking</span>
             </a>
             <div class="relative max-w-md">
-                <h2 class="text-3xl font-bold leading-tight">Every minute counted, to the minute.</h2>
-                <ul class="mt-6 space-y-3 text-brand-100">
-                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-brand-300') }} Daily balance against your weekly target</li>
-                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-brand-300') }} Cumulated balance from Monday to Friday</li>
-                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-brand-300') }} Live estimate of the time you can leave</li>
+                <p class="text-sm text-ink-300">{{ 'You can leave at'|trans }}</p>
+                <div class="mt-2">{{ flap.display('16:31', '', '3.5rem') }}</div>
+                <h2 class="mt-10 text-3xl font-bold leading-tight text-white">{{ 'Every minute counted, to the minute.'|trans }}</h2>
+                <ul class="mt-6 space-y-3 text-ink-300">
+                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-amber-400') }} {{ 'Daily balance against your weekly hours'|trans }}</li>
+                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-amber-400') }} {{ 'The week cumulated from Monday to Friday'|trans }}</li>
+                    <li class="flex gap-3">{{ icons.icon('check', 'h-5 w-5 shrink-0 text-amber-400') }} {{ 'A live estimate of the time you can leave'|trans }}</li>
                 </ul>
             </div>
-            <p class="relative text-xs text-brand-200">Self-hosted · your data stays on your server</p>
+            <p class="relative eyebrow text-ink-500">{{ 'Self-hosted · your data stays on your server'|trans }}</p>
         </aside>
 
-        <div class="flex flex-col px-4 py-10 sm:px-8 lg:px-16 lg:py-16">
-            <a href="{{ path('app_landing') }}" class="mb-10 flex items-center gap-2.5 font-bold text-stone-900 lg:hidden">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-700 text-white">{{ icons.icon('clock', 'h-5 w-5') }}</span>
-                Clocking
-            </a>
-            <div class="m-auto w-full max-w-md">
-                <h1 class="text-3xl font-bold tracking-tight text-stone-900">{% block auth_heading %}{% endblock %}</h1>
-                <p class="mt-2 text-sm text-stone-600">{% block auth_subheading %}{% endblock %}</p>
+        <div class="flex flex-col px-4 py-8 sm:px-8 lg:px-16 lg:py-12">
+            <div class="flex items-center justify-between">
+                <a href="{{ path('app_landing') }}" class="flex items-center gap-2.5 text-ink-900 lg:invisible">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-ink-900 text-amber-400">{{ icons.icon('clock', 'h-5 w-5') }}</span>
+                    <span class="font-display text-lg font-bold tracking-tight">Clocking</span>
+                </a>
+                {% include '_partials/lang_switch.html.twig' with {tone: 'paper'} only %}
+            </div>
+            <div class="m-auto w-full max-w-md py-10">
+                <h1 class="text-3xl font-bold text-ink-900 sm:text-4xl">{% block auth_heading %}{% endblock %}</h1>
+                <p class="mt-2 text-sm text-ink-600">{% block auth_subheading %}{% endblock %}</p>
                 <div class="mt-8">
                     {% include '_partials/flashes.html.twig' %}
                     {% block auth_form %}{% endblock %}
                 </div>
-                <p class="mt-8 text-center text-sm text-stone-600">{% block auth_footer %}{% endblock %}</p>
+                <p class="mt-8 text-center text-sm text-ink-600">{% block auth_footer %}{% endblock %}</p>
             </div>
         </div>
     </div>

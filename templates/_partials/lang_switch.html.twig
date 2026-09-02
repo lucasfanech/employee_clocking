@@ -1,0 +1,10 @@
+{# FR / EN switch. `tone` is "ink" (on the dark band) or "paper". #}
+{% set tone = tone|default('ink') %}
+{% set current = app.request.locale %}
+<nav class="lang-switch lang-switch-{{ tone }}" aria-label="{{ 'Language'|trans }}">
+    {% for locale, label in {'en': 'EN', 'fr': 'FR'} %}
+        <a href="{{ path('app_locale', {locale: locale}) }}" hreflang="{{ locale }}" lang="{{ locale }}"
+           {% if locale == current %}aria-current="true"{% endif %}
+           title="{{ locale == 'fr' ? 'Français' : 'English' }}">{{ label }}</a>
+    {% endfor %}
+</nav>

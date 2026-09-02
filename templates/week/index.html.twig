@@ -1,196 +1,202 @@
 {% extends 'base.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
+{% import '_partials/flap.html.twig' as flap %}
 
-{% block title %}{{ week.label }} · Clocking{% endblock %}
+{% block title %}{{ 'Week %week% of %year%'|trans({'%week%': week.week, '%year%': week.year}) }} · Clocking{% endblock %}
 
 {% macro balance_badge(minutes, extra_attrs = '') %}
     {%- set class = minutes is null ? 'badge-neutral' : (minutes < 0 ? 'badge-negative' : (minutes > 0 ? 'badge-positive' : 'badge-neutral')) -%}
-    <span class="badge {{ class }} font-mono" {{ extra_attrs|raw }}>{{ minutes is null ? '—' : minutes|signed_minutes }}</span>
+    <span class="badge {{ class }}" {{ extra_attrs|raw }}>{{ minutes is null ? '—' : minutes|signed_minutes }}</span>
 {% endmacro %}
 
-{% block body %}
-    {% set today = summary.today %}
-    {% set is_current = week.equals(current) %}
+{% set today = summary.today %}
+{% set is_current = week.equals(current) %}
 
-    <div data-controller="week" data-week-preview-url-value="{{ path('app_week_preview', {year: week.year, week: week.week}) }}">
-
-        {# ------------------------------------------------------------ Header #}
-        <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                    {{ week.monday|date('l j F') }} → {{ week.friday|date('l j F Y') }}
-                </p>
-                <h1 class="mt-1 text-3xl font-bold tracking-tight text-stone-900">{{ week.label }}</h1>
-            </div>
-            <div class="flex items-center gap-2">
-                {% if not is_current %}
-                    <a href="{{ path('app_home') }}" class="btn btn-secondary btn-sm">This week</a>
-                {% endif %}
-                <a href="{{ path('app_week', {year: previous.year, week: previous.week}) }}" class="btn btn-secondary btn-icon" title="Previous week" rel="prev">
-                    {{ icons.icon('chevron-left', 'h-5 w-5') }}<span class="sr-only">Previous week</span>
-                </a>
-                <a href="{{ path('app_week', {year: next.year, week: next.week}) }}" class="btn btn-secondary btn-icon" title="Next week" rel="next">
-                    {{ icons.icon('chevron-right', 'h-5 w-5') }}<span class="sr-only">Next week</span>
-                </a>
-            </div>
+{% block band %}
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="eyebrow text-amber-400">
+                {{ week.monday|format_date(pattern: 'EEEE d MMMM')|capitalize }} → {{ week.friday|format_date(pattern: 'EEEE d MMMM y')|capitalize }}
+            </p>
+            <h1 class="band-title mt-2">{{ 'Week %week% of %year%'|trans({'%week%': week.week, '%year%': week.year}) }}</h1>
         </div>
+        <div class="flex items-center gap-2">
+            {% if not is_current %}
+                <a href="{{ path('app_home') }}" class="btn btn-on-ink btn-sm">{{ 'This week'|trans }}</a>
+            {% endif %}
+            <a href="{{ path('app_week', {year: previous.year, week: previous.week}) }}" class="btn btn-icon btn-on-ink" title="{{ 'Previous week'|trans }}" rel="prev">
+                {{ icons.icon('chevron-left', 'h-5 w-5') }}<span class="sr-only">{{ 'Previous week'|trans }}</span>
+            </a>
+            <a href="{{ path('app_week', {year: next.year, week: next.week}) }}" class="btn btn-icon btn-on-ink" title="{{ 'Next week'|trans }}" rel="next">
+                {{ icons.icon('chevron-right', 'h-5 w-5') }}<span class="sr-only">{{ 'Next week'|trans }}</span>
+            </a>
+        </div>
+    </div>
+{% endblock %}
 
-        <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
+{% block body %}
+    <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]"
+         data-controller="week" data-week-preview-url-value="{{ path('app_week_preview', {year: week.year, week: week.week}) }}"
+         data-week-status-computing="{{ 'Computing…'|trans }}"
+         data-week-status-unsaved="{{ 'Unsaved changes. Save to keep them.'|trans }}"
+         data-week-status-error="{{ 'The balances could not be computed. Check the times.'|trans }}">
 
-            {# ------------------------------------------------------- Week grid #}
-            <section class="card overflow-hidden">
-                {{ form_start(form, {attr: {id: 'week-form', novalidate: 'novalidate'}}) }}
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[44rem] text-sm">
-                        <thead class="bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
-                            <tr>
-                                <th scope="col" class="px-4 py-3 font-semibold">Day</th>
-                                <th scope="col" class="px-1.5 py-3 font-semibold">Morning in</th>
-                                <th scope="col" class="px-1.5 py-3 font-semibold">Lunch out</th>
-                                <th scope="col" class="px-1.5 py-3 font-semibold">Afternoon in</th>
-                                <th scope="col" class="px-1.5 py-3 font-semibold">Evening out</th>
-                                <th scope="col" class="px-2 py-3 text-center font-semibold">+/-</th>
-                                <th scope="col" class="px-2 py-3 text-center font-semibold">Cumulated</th>
-                                <th scope="col" class="px-3 py-3 text-center font-semibold">Off</th>
+        {# ------------------------------------------------------- Time card #}
+        <section class="sheet overflow-hidden">
+            {{ form_start(form, {attr: {id: 'week-form', novalidate: 'novalidate'}}) }}
+            <div class="overflow-x-auto">
+                <table class="timecard w-full min-w-[44rem] text-sm">
+                    <thead class="text-left">
+                        <tr class="eyebrow text-ink-500">
+                            <th scope="col" class="px-4 py-3 font-medium">{{ 'Day'|trans }}</th>
+                            <th scope="col" class="px-1.5 py-3 font-medium">{{ 'Morning in'|trans }}</th>
+                            <th scope="col" class="px-1.5 py-3 font-medium">{{ 'Lunch out'|trans }}</th>
+                            <th scope="col" class="px-1.5 py-3 font-medium">{{ 'Afternoon in'|trans }}</th>
+                            <th scope="col" class="px-1.5 py-3 font-medium">{{ 'Evening out'|trans }}</th>
+                            <th scope="col" class="px-2 py-3 text-center font-medium">+/-</th>
+                            <th scope="col" class="px-2 py-3 text-center font-medium">{{ 'Cumulated'|trans }}</th>
+                            <th scope="col" class="px-3 py-3 text-center font-medium">{{ 'Off'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in summary.days %}
+                            {% set day_form = form.days[day.index] %}
+                            {% set day_name = day.date|format_date(pattern: 'EEEE')|capitalize %}
+                            <tr class="{% if day.dayOff %}bg-ink-50 text-ink-400{% elseif day.isToday %}bg-amber-100/50{% endif %}">
+                                <th scope="row" class="px-4 py-3 text-left align-top">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-display text-base font-semibold {{ day.dayOff ? 'text-ink-500' : 'text-ink-900' }}">{{ day_name }}</span>
+                                        {% if day.isToday %}<span class="badge badge-live">{{ 'today'|trans }}</span>{% endif %}
+                                        {% if day.dayOff %}<span class="badge badge-neutral">{{ 'day off'|trans }}</span>{% endif %}
+                                    </div>
+                                    <span class="font-mono text-xs font-normal text-ink-500">{{ day.date|format_date(pattern: 'd MMM') }}</span>
+                                </th>
+                                {% for field in ['morningIn', 'lunchOut', 'afternoonIn', 'eveningOut'] %}
+                                    <td class="px-1.5 py-3 align-top">
+                                        {{ form_widget(day_form[field], {
+                                            disabled: day.dayOff,
+                                            attr: {
+                                                class: 'clocking-time w-[6rem]',
+                                                'data-week-target': 'time',
+                                                'data-index': day.index,
+                                                'data-field': field,
+                                                'data-action': 'change->week#recompute',
+                                                'aria-label': day_name ~ ' · ' ~ day_form[field].vars.name,
+                                            }
+                                        }) }}
+                                        {{ form_errors(day_form[field]) }}
+                                    </td>
+                                {% endfor %}
+                                <td class="px-2 py-3 text-center align-top">
+                                    {{ _self.balance_badge(day.balance, 'data-week-target="balance" data-index="' ~ day.index ~ '"') }}
+                                </td>
+                                <td class="px-2 py-3 text-center align-top">
+                                    {{ _self.balance_badge(day.cumulated, 'data-week-target="cumulated" data-index="' ~ day.index ~ '"') }}
+                                </td>
+                                <td class="px-3 py-3 text-center align-top">
+                                    <button type="submit" form="day-off-{{ day.index }}"
+                                            class="btn btn-icon {{ day.dayOff ? 'btn-secondary text-cobalt-600' : 'btn-ghost text-ink-400 hover:text-minus-600' }}"
+                                            title="{{ day.dayOff ? 'Make it a working day'|trans : 'Mark as a day off'|trans }}">
+                                        {{ icons.icon(day.dayOff ? 'calendar-plus' : 'calendar-x', 'h-5 w-5') }}
+                                        <span class="sr-only">{{ day.dayOff ? 'Make it a working day'|trans : 'Mark as a day off'|trans }}</span>
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody class="divide-y divide-stone-100">
-                            {% for day in summary.days %}
-                                {% set day_form = form.days[day.index] %}
-                                <tr class="{% if day.dayOff %}bg-stone-50 text-stone-400{% elseif day.isToday %}bg-brand-50/60{% endif %}">
-                                    <th scope="row" class="px-4 py-3 text-left align-top">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-semibold {{ day.dayOff ? 'text-stone-500' : 'text-stone-900' }}">{{ day.name() }}</span>
-                                            {% if day.isToday %}<span class="badge badge-warning">today</span>{% endif %}
-                                            {% if day.dayOff %}<span class="badge badge-neutral">day off</span>{% endif %}
-                                        </div>
-                                        <span class="text-xs font-normal text-stone-500">{{ day.date|date('j F') }}</span>
-                                    </th>
-                                    {% for field in ['morningIn', 'lunchOut', 'afternoonIn', 'eveningOut'] %}
-                                        <td class="px-1.5 py-3 align-top">
-                                            {{ form_widget(day_form[field], {
-                                                disabled: day.dayOff,
-                                                attr: {
-                                                    class: 'clocking-time w-[6rem]',
-                                                    'data-week-target': 'time',
-                                                    'data-index': day.index,
-                                                    'data-field': field,
-                                                    'data-action': 'change->week#recompute',
-                                                    'aria-label': day.name() ~ ' ' ~ field,
-                                                }
-                                            }) }}
-                                            {{ form_errors(day_form[field]) }}
-                                        </td>
-                                    {% endfor %}
-                                    <td class="px-2 py-3 text-center align-top">
-                                        {{ _self.balance_badge(day.balance, 'data-week-target="balance" data-index="' ~ day.index ~ '"') }}
-                                    </td>
-                                    <td class="px-2 py-3 text-center align-top">
-                                        {{ _self.balance_badge(day.cumulated, 'data-week-target="cumulated" data-index="' ~ day.index ~ '"') }}
-                                    </td>
-                                    <td class="px-3 py-3 text-center align-top">
-                                        <button type="submit" form="day-off-{{ day.index }}"
-                                                class="btn btn-icon {{ day.dayOff ? 'btn-secondary text-brand-700' : 'btn-ghost text-stone-400 hover:text-rose-600' }}"
-                                                title="{{ day.dayOff ? 'Make it a working day' : 'Mark as a day off' }}">
-                                            {{ icons.icon(day.dayOff ? 'calendar-plus' : 'calendar-x', 'h-5 w-5') }}
-                                            <span class="sr-only">{{ day.dayOff ? 'Make it a working day' : 'Mark as a day off' }}</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 bg-stone-50 px-5 py-4">
-                    <p class="text-xs text-stone-500" data-week-target="status">
-                        Balances update as you type; press Save to keep them.
-                    </p>
-                    <button type="submit" class="btn btn-primary">
-                        {{ icons.icon('save', 'h-4 w-4') }}
-                        Save
-                    </button>
-                </div>
-                {{ form_end(form) }}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-ink-200 bg-ink-50 px-5 py-4">
+                <p class="text-xs text-ink-500" data-week-target="status">
+                    {{ 'Balances update as you type. Save to keep them.'|trans }}
+                </p>
+                <button type="submit" class="btn btn-primary">
+                    {{ icons.icon('save', 'h-4 w-4') }}
+                    {{ 'Save times'|trans }}
+                </button>
+            </div>
+            {{ form_end(form) }}
 
-                {# Day-off toggles live outside of the main form (nested forms are not allowed). #}
-                {% for day in summary.days %}
-                    <form id="day-off-{{ day.index }}" method="post" action="{{ path('app_week_day_off', {year: week.year, week: week.week, index: day.index}) }}" class="hidden">
-                        <input type="hidden" name="_token" value="{{ csrf_token('day-off') }}">
-                    </form>
-                {% endfor %}
+            {# Day-off toggles live outside of the main form (nested forms are not allowed). #}
+            {% for day in summary.days %}
+                <form id="day-off-{{ day.index }}" method="post" action="{{ path('app_week_day_off', {year: week.year, week: week.week, index: day.index}) }}" class="hidden">
+                    <input type="hidden" name="_token" value="{{ csrf_token('day-off') }}">
+                </form>
+            {% endfor %}
+        </section>
+
+        {# ------------------------------------------------------- Side panel #}
+        <aside class="space-y-6">
+            <section class="rounded-xl bg-ink-800 p-5 text-white ring-1 ring-white/10 shadow-sheet sm:p-6">
+                <div class="flex items-center justify-between">
+                    <p class="eyebrow text-ink-400">{{ 'Today'|trans }}</p>
+                    {% if today is not null %}<span class="badge badge-live">{{ 'live'|trans }}</span>{% endif %}
+                </div>
+
+                {% if today is null %}
+                    <p class="mt-4 text-sm text-ink-300">
+                        {% if is_current %}{{ 'Today is a day off or a weekend: nothing to estimate.'|trans }}{% else %}{{ 'Open this week to see today\'s estimate.'|trans }}{% endif %}
+                    </p>
+                    <div class="mt-4">{{ flap.display(null, '', '2.25rem') }}</div>
+                    {% if not is_current %}
+                        <a href="{{ path('app_home') }}" class="btn btn-on-ink btn-sm mt-5">{{ 'This week'|trans }}</a>
+                    {% endif %}
+                {% else %}
+                    <p class="mt-4 text-sm text-ink-300">{{ 'You can leave at'|trans }}</p>
+                    <div class="mt-2" data-week-target="leaving">
+                        {{ flap.display(today.leavingTime is null ? null : today.leavingTime|clock_minutes, '', '2.5rem') }}
+                    </div>
+
+                    <div class="mt-5 border-t border-dashed border-white/15 pt-4">
+                        <p class="flex flex-wrap items-center gap-2 text-sm text-ink-300">
+                            {{ 'With the week balance'|trans }}
+                            {{ _self.balance_badge(today.cumulatedBefore, 'data-week-target="cumulatedBefore"') }}
+                        </p>
+                        <div class="mt-2" data-week-target="adjusted">
+                            {{ flap.display(today.adjustedLeavingTime is null ? null : today.adjustedLeavingTime|clock_minutes, 'flap-amber', '1.75rem') }}
+                        </div>
+                    </div>
+
+                    <p class="mt-4 text-xs text-ink-400">
+                        <span data-week-target="hintEmpty" {% if today.leavingTime is not null %}hidden{% endif %}>{{ 'Enter this morning\'s clock-in to get an estimate.'|trans }}</span>
+                        <span data-week-target="hintFilled" {% if today.leavingTime is null %}hidden{% endif %}>{{ 'Morning in + %target% of work + your lunch break.'|trans({'%target%': schedule.dailyMinutes|duration_minutes}) }}</span>
+                    </p>
+
+                    <div class="alert alert-warning mt-4" data-week-target="clockedOut" {% if not today.clockedOut %}hidden{% endif %}>
+                        {{ icons.icon('alert', 'h-5 w-5 shrink-0 mt-0.5') }}
+                        <div>
+                            <p class="font-semibold">{{ 'You have already clocked out.'|trans }}</p>
+                            <p class="mt-1 text-xs">{{ 'If the balance is negative, make it up on another day.'|trans }}</p>
+                        </div>
+                    </div>
+                {% endif %}
             </section>
 
-            {# ------------------------------------------------------- Side panel #}
-            <aside class="space-y-6">
-                <section class="card card-body">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">Today</h2>
-
-                    {% if today is null %}
-                        <p class="mt-3 text-sm text-stone-600">
-                            {% if is_current %}Today is a day off or a weekend: nothing to estimate.{% else %}Open <a href="{{ path('app_home') }}" class="font-semibold text-brand-700">this week</a> to see today's estimate.{% endif %}
-                        </p>
-                        <p class="mt-4 font-mono text-4xl font-bold tabular-nums text-stone-300">--:--</p>
-                    {% else %}
-                        <p class="mt-3 text-xs text-stone-500">Estimated end of the day</p>
-                        <p class="font-mono text-4xl font-bold tabular-nums text-stone-900" data-week-target="leaving">
-                            {{ today.leavingTime is null ? '--:--' : today.leavingTime|clock_minutes }}
-                        </p>
-
-                        <div class="mt-4 rounded-xl bg-brand-700 p-4 text-white">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-brand-100">With the week balance</p>
-                            <p class="mt-1 font-mono text-3xl font-bold tabular-nums" data-week-target="adjusted">
-                                {{ today.adjustedLeavingTime is null ? '--:--' : today.adjustedLeavingTime|clock_minutes }}
-                            </p>
-                            <p class="mt-2 flex items-center gap-2 text-xs text-brand-100">
-                                Cumulated before today
-                                {{ _self.balance_badge(today.cumulatedBefore, 'data-week-target="cumulatedBefore"') }}
-                            </p>
-                        </div>
-
-                        <p class="mt-3 text-xs text-stone-500">
-                            {% if today.leavingTime is null %}
-                                Enter this morning's clock-in to get an estimate.
-                            {% else %}
-                                Morning in + {{ schedule.dailyMinutes|duration_minutes }} of work + your lunch break.
+            <section class="sheet sheet-body text-sm">
+                <p class="eyebrow text-ink-500">{{ 'Your rules'|trans }}</p>
+                <dl class="mt-3 space-y-2">
+                    <div class="flex justify-between gap-4"><dt class="text-ink-600">{{ 'Hours a week'|trans }}</dt><dd class="font-mono font-medium tabular-nums">{{ schedule.weeklyMinutes|duration_minutes }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt class="text-ink-600">{{ 'Target a day'|trans }}</dt><dd class="font-mono font-medium tabular-nums">{{ schedule.dailyMinutes|duration_minutes }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt class="text-ink-600">{{ 'Lunch break'|trans }}</dt><dd class="font-mono font-medium tabular-nums">{{ schedule.lunchBreakMinutes|duration_minutes }}</dd></div>
+                    <div class="flex justify-between gap-4">
+                        <dt class="text-ink-600">{{ 'Short break'|trans }}</dt>
+                        <dd class="text-right">
+                            <span class="font-mono font-medium tabular-nums">{{ schedule.shortLunchBreakMinutes|duration_minutes }}</span>
+                            {% if schedule.shortLunchBreakDays|length > 0 %}
+                                <span class="block text-xs text-ink-500">
+                                    {% for d in schedule.shortLunchBreakDays %}{{ week.monday|date_modify('+' ~ (d - 1) ~ ' days')|format_date(pattern: 'EEE')|capitalize }}{% if not loop.last %}, {% endif %}{% endfor %}
+                                </span>
                             {% endif %}
-                        </p>
+                        </dd>
+                    </div>
+                </dl>
+                <a href="{{ path('app_schedule') }}" class="btn btn-secondary btn-sm mt-4 w-full">
+                    {{ icons.icon('cog', 'h-4 w-4') }}
+                    {{ 'Edit working hours'|trans }}
+                </a>
+            </section>
 
-                        <div class="alert alert-warning mt-4" data-week-target="clockedOut" {% if not today.clockedOut %}hidden{% endif %}>
-                            {{ icons.icon('alert', 'h-5 w-5 shrink-0 mt-0.5') }}
-                            <div>
-                                <p class="font-semibold">You have already clocked out.</p>
-                                <p class="mt-1 text-xs">If the balance is negative, you should work more to catch up.</p>
-                            </div>
-                        </div>
-                    {% endif %}
-                </section>
-
-                <section class="card card-body text-sm">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-stone-500">Your rules</h2>
-                    <dl class="mt-3 space-y-2">
-                        <div class="flex justify-between gap-4"><dt class="text-stone-600">Hours a week</dt><dd class="font-mono font-semibold tabular-nums">{{ schedule.weeklyMinutes|duration_minutes }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-stone-600">Target a day</dt><dd class="font-mono font-semibold tabular-nums">{{ schedule.dailyMinutes|duration_minutes }}</dd></div>
-                        <div class="flex justify-between gap-4"><dt class="text-stone-600">Lunch break</dt><dd class="font-mono font-semibold tabular-nums">{{ schedule.lunchBreakMinutes|duration_minutes }}</dd></div>
-                        <div class="flex justify-between gap-4">
-                            <dt class="text-stone-600">Short break</dt>
-                            <dd class="text-right">
-                                <span class="font-mono font-semibold tabular-nums">{{ schedule.shortLunchBreakMinutes|duration_minutes }}</span>
-                                {% if schedule.shortLunchBreakDays|length > 0 %}
-                                    <span class="block text-xs text-stone-500">
-                                        {% for d in schedule.shortLunchBreakDays %}{{ ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d] }}{% if not loop.last %}, {% endif %}{% endfor %}
-                                    </span>
-                                {% endif %}
-                            </dd>
-                        </div>
-                    </dl>
-                    <a href="{{ path('app_schedule') }}" class="btn btn-secondary btn-sm mt-4 w-full">
-                        {{ icons.icon('cog', 'h-4 w-4') }}
-                        Edit working hours
-                    </a>
-                </section>
-
-                {% include 'week/_minesweeper.html.twig' %}
-            </aside>
-        </div>
+            {% include 'week/_minesweeper.html.twig' %}
+        </aside>
     </div>
 {% endblock %}

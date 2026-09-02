@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/admin')]
 #[IsGranted(User::ROLE_ADMIN)]
@@ -29,6 +30,7 @@ final class UserController extends AbstractController
     public function __construct(
         private readonly UserManager $userManager,
         private readonly EntityManagerInterface $entityManager,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -54,7 +56,7 @@ final class UserController extends AbstractController
                 (string) $form->get('plainPassword')->getData(),
                 (bool) $form->get('admin')->getData(),
             );
-            $this->addFlash('success', \sprintf('Account "%s" created.', $user->getEmail()));
+            $this->addFlash('success', $this->translator->trans('Account %email% created.', ['%email%' => $user->getEmail()]));
 
             return $this->redirectToRoute('admin_users');
         }
@@ -71,14 +73,14 @@ final class UserController extends AbstractController
         $admin = 'admin' === $request->request->get('role');
 
         if ($user === $current && !$admin) {
-            $this->addFlash('danger', 'You cannot remove your own administrator role.');
+            $this->addFlash('danger', $this->translator->trans('You cannot remove your own administrator role.'));
 
             return $this->redirectToRoute('admin_users');
         }
 
         $this->userManager->setAdmin($user, $admin);
         $this->entityManager->flush();
-        $this->addFlash('success', \sprintf('Role of "%s" updated.', $user->getEmail()));
+        $this->addFlash('success', $this->translator->trans('Role of %email% updated.', ['%email%' => $user->getEmail()]));
 
         return $this->redirectToRoute('admin_users');
     }
@@ -89,14 +91,14 @@ final class UserController extends AbstractController
     {
         $password = (string) $request->request->get('password', '');
         if (\strlen($password) < ChangePasswordType::MIN_LENGTH) {
-            $this->addFlash('danger', \sprintf('The password should be at least %d characters.', ChangePasswordType::MIN_LENGTH));
+            $this->addFlash('danger', $this->translator->trans('The password should be at least %min% characters.', ['%min%' => ChangePasswordType::MIN_LENGTH]));
 
             return $this->redirectToRoute('admin_users');
         }
 
         $this->userManager->setPassword($user, $password);
         $this->entityManager->flush();
-        $this->addFlash('success', \sprintf('Password of "%s" updated.', $user->getEmail()));
+        $this->addFlash('success', $this->translator->trans('Password of %email% updated.', ['%email%' => $user->getEmail()]));
 
         return $this->redirectToRoute('admin_users');
     }
@@ -106,7 +108,7 @@ final class UserController extends AbstractController
     public function delete(#[MapEntity] User $user, #[CurrentUser] User $current): Response
     {
         if ($user === $current) {
-            $this->addFlash('danger', 'You cannot delete your own account.');
+            $this->addFlash('danger', $this->translator->trans('You cannot delete your own account.'));
 
             return $this->redirectToRoute('admin_users');
         }
@@ -114,7 +116,7 @@ final class UserController extends AbstractController
         // Schedule and work days are removed by cascade.
         $this->entityManager->remove($user);
         $this->entityManager->flush();
-        $this->addFlash('success', \sprintf('Account "%s" deleted.', $user->getEmail()));
+        $this->addFlash('success', $this->translator->trans('Account %email% deleted.', ['%email%' => $user->getEmail()]));
 
         return $this->redirectToRoute('admin_users');
     }

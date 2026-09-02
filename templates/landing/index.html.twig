@@ -1,154 +1,114 @@
 {% extends 'base.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
+{% import '_partials/flap.html.twig' as flap %}
 
-{% block title %}Clocking · Know when you can leave{% endblock %}
+{% block title %}Clocking · {{ 'Know when you can leave.'|trans }}{% endblock %}
 
 {% block main %}
-    {# ---------------------------------------------------------------- Hero #}
-    <section class="relative overflow-hidden">
-        <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60rem_40rem_at_80%_-10%,theme(--color-brand-100),transparent)]"></div>
-        <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
+    {# ------------------------------------------------ Hero: the thesis is the leaving time #}
+    <section class="band relative overflow-hidden">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(50rem_30rem_at_85%_0%,rgb(43_76_242_/_0.35),transparent_70%)]"></div>
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/10"></div>
+
+        <div class="relative mx-auto grid max-w-7xl items-center gap-14 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:px-8 lg:pb-28 lg:pt-20">
             <div>
-                <span class="badge badge-neutral mb-5 gap-2 py-1 pl-1 pr-3">
-                    <span class="rounded-full bg-brand-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">New</span>
-                    Live daily balance &amp; leaving-time estimate
-                </span>
-                <h1 class="text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl lg:text-6xl">
-                    Clock in.<br>
-                    Clock out.<br>
-                    <span class="text-brand-700">Know when you can leave.</span>
+                <p class="eyebrow text-amber-400">{{ 'Time card · Monday to Friday'|trans }}</p>
+                <h1 class="mt-5 font-display text-5xl font-extrabold leading-[0.98] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                    {{ 'Know when you can leave.'|trans }}
                 </h1>
-                <p class="mt-6 max-w-xl text-lg leading-8 text-stone-600">
-                    Clocking keeps track of your four daily times, computes the balance of every day against your
-                    weekly target, cumulates it over the week and tells you the exact time you can go home.
+                <p class="mt-7 max-w-xl text-lg leading-8 text-ink-300">
+                    {{ 'Type your four times of the day. Clocking balances each day against your weekly hours, adds the week up and shows the exact time you can go home.'|trans }}
                 </p>
-                <div class="mt-8 flex flex-wrap items-center gap-3">
-                    <a href="{{ path('app_register') }}" class="btn btn-primary px-6 py-3 text-base">
-                        Create your account
+                <div class="mt-9 flex flex-wrap items-center gap-3">
+                    <a href="{{ path('app_register') }}" class="btn btn-amber btn-lg">
+                        {{ 'Create account'|trans }}
                         {{ icons.icon('arrow-right', 'h-5 w-5') }}
                     </a>
-                    <a href="{{ path('app_login') }}" class="btn btn-secondary px-6 py-3 text-base">
+                    <a href="{{ path('app_login') }}" class="btn btn-on-ink btn-lg">
                         {{ icons.icon('login', 'h-5 w-5') }}
-                        Sign in
+                        {{ 'Sign in'|trans }}
                     </a>
                 </div>
-                <p class="mt-4 text-sm text-stone-500">Free, self-hosted, no tracking. The first account becomes the administrator.</p>
+                <p class="mt-5 text-sm text-ink-400">{{ 'Self-hosted, no tracking. The first account becomes the administrator.'|trans }}</p>
             </div>
 
-            {# Static preview of the week grid #}
-            <div class="card overflow-hidden">
-                <div class="flex items-center justify-between border-b border-stone-100 px-5 py-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-stone-500">Week 10 · 2026</p>
-                        <p class="text-sm text-stone-600">Monday 2 March → Friday 6 March</p>
+            {# The product's own "today" display, at hero scale #}
+            <div class="relative mx-auto w-full max-w-md">
+                <div class="rounded-2xl bg-ink-800 p-6 ring-1 ring-white/10 shadow-[0_30px_60px_-30px_rgb(0_0_0/0.8)] sm:p-8">
+                    <div class="flex items-center justify-between">
+                        <p class="eyebrow text-ink-400">{{ 'Friday'|trans }} · 08:04 → 12:10 → 12:55</p>
+                        <span class="badge badge-live">{{ 'live'|trans }}</span>
                     </div>
-                    <span class="badge badge-positive shrink-0">Week: +0:42</span>
-                </div>
-                <table class="w-full text-sm">
-                    <thead class="bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
-                        <tr>
-                            <th class="px-5 py-2 font-semibold">Day</th>
-                            <th class="px-2 py-2 font-semibold">In</th>
-                            <th class="px-2 py-2 font-semibold">Lunch</th>
-                            <th class="px-2 py-2 font-semibold">Back</th>
-                            <th class="px-2 py-2 font-semibold">Out</th>
-                            <th class="px-5 py-2 text-right font-semibold">+/-</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-stone-100 font-mono tabular-nums">
-                        {% set demo = [
-                            {d: 'Mon', t: ['08:02', '12:15', '13:10', '17:05'], b: '+0:16', c: 'badge-positive'},
-                            {d: 'Tue', t: ['08:30', '12:30', '13:30', '17:00'], b: '-0:12', c: 'badge-negative'},
-                            {d: 'Wed', t: ['07:55', '12:00', '12:45', '16:58'], b: '+0:21', c: 'badge-positive'},
-                            {d: 'Thu', t: ['08:10', '12:20', '13:05', '17:00'], b: '+0:03', c: 'badge-positive'},
-                        ] %}
-                        {% for row in demo %}
-                            <tr>
-                                <td class="px-5 py-2.5 font-sans font-semibold text-stone-800">{{ row.d }}</td>
-                                {% for t in row.t %}<td class="px-2 py-2.5 text-stone-700">{{ t }}</td>{% endfor %}
-                                <td class="px-5 py-2.5 text-right"><span class="badge {{ row.c }}">{{ row.b }}</span></td>
-                            </tr>
-                        {% endfor %}
-                        <tr class="bg-brand-50/60">
-                            <td class="px-5 py-2.5 font-sans font-semibold text-brand-900">Fri <span class="ml-1 badge badge-warning font-sans">today</span></td>
-                            <td class="px-2 py-2.5 text-stone-700">08:04</td>
-                            <td class="px-2 py-2.5 text-stone-700">12:10</td>
-                            <td class="px-2 py-2.5 text-stone-700">12:55</td>
-                            <td class="px-2 py-2.5 text-stone-400">--:--</td>
-                            <td class="px-5 py-2.5 text-right"><span class="badge badge-neutral">—</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="grid grid-cols-2 gap-3 border-t border-stone-100 bg-stone-50 p-4">
-                    <div class="rounded-xl bg-white p-4 ring-1 ring-stone-900/5">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-stone-500">End of the day</p>
-                        <p class="mt-1 font-mono text-3xl font-bold tabular-nums text-stone-900">16:31</p>
-                    </div>
-                    <div class="rounded-xl bg-brand-700 p-4 text-white shadow-sm">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-brand-100">With week balance</p>
-                        <p class="mt-1 font-mono text-3xl font-bold tabular-nums">16:03</p>
+                    <p class="mt-6 text-sm text-ink-300">{{ 'You can leave at'|trans }}</p>
+                    <div class="mt-2">{{ flap.display('16:31', '', 'clamp(2.75rem, 8vw, 4.25rem)') }}</div>
+                    <div class="mt-6 border-t border-dashed border-white/15 pt-5">
+                        <p class="text-sm text-ink-300">{{ 'With the week balance'|trans }} <span class="badge badge-positive ml-1">+0:28</span></p>
+                        <div class="mt-2">{{ flap.display('16:03', 'flap-amber', 'clamp(1.75rem, 5vw, 2.5rem)') }}</div>
                     </div>
                 </div>
+                <p class="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-ink-500">{{ 'Sample week · 38h30 · 1h lunch · 45 min on Friday'|trans }}</p>
             </div>
         </div>
     </section>
 
-    {# ------------------------------------------------------- How it works #}
-    <section class="border-y border-stone-200 bg-white">
-        <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <div class="mx-auto max-w-2xl text-center">
-                <h2 class="text-3xl font-bold tracking-tight text-stone-900">Four times a day, that's all it takes</h2>
-                <p class="mt-3 text-stone-600">No timer to remember. Type the times when you have them; the numbers update live.</p>
-            </div>
-            <ol class="mt-12 grid gap-8 md:grid-cols-4">
-                {% set steps = [
-                    {icon: 'sun', title: 'Morning in', text: 'Arrive and note the time. The leaving-time estimate appears immediately.'},
-                    {icon: 'coffee', title: 'Lunch out / back', text: 'Your break is checked against the minimum you configured, with shorter days allowed.'},
-                    {icon: 'moon', title: 'Evening out', text: 'The day is balanced: overtime or missing minutes, to the minute.'},
-                    {icon: 'chart', title: 'Week cumulated', text: 'Balances add up from Monday to Friday and adjust the time you can leave today.'},
-                ] %}
-                {% for step in steps %}
-                    <li class="relative rounded-2xl bg-stone-50 p-6 ring-1 ring-stone-900/5">
-                        <span class="absolute right-5 top-5 text-4xl font-black text-stone-200">{{ loop.index }}</span>
-                        <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
-                            {{ icons.icon(step.icon, 'h-6 w-6') }}
-                        </span>
-                        <h3 class="mt-4 text-lg font-semibold text-stone-900">{{ step.title }}</h3>
-                        <p class="mt-2 text-sm leading-6 text-stone-600">{{ step.text }}</p>
-                    </li>
-                {% endfor %}
-            </ol>
-        </div>
-    </section>
-
-    {# ------------------------------------------------------------ Features #}
+    {# ------------------------------------------------ The day, in order #}
     <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div class="grid gap-6 lg:grid-cols-3">
+        <div class="max-w-2xl">
+            <p class="eyebrow text-cobalt-600">{{ 'How it works'|trans }}</p>
+            <h2 class="mt-3 text-3xl font-bold text-ink-900 sm:text-4xl">{{ 'Four punches a day. Nothing else to remember.'|trans }}</h2>
+            <p class="mt-3 text-ink-600">{{ 'Type the times when you have them. Every number on the page updates as you type; save when the day is done.'|trans }}</p>
+        </div>
+        <ol class="timecard mt-10 grid gap-px overflow-hidden rounded-xl bg-ink-200 ring-1 ring-ink-200 md:grid-cols-4">
+            {% set steps = [
+                {time: '08:02', icon: 'sun', title: 'Morning in', text: 'Your leaving-time estimate appears the moment you clock in.'},
+                {time: '12:15', icon: 'coffee', title: 'Lunch out', text: 'The break is checked against the minimum you set. Shorter breaks are not credited.'},
+                {time: '13:10', icon: 'coffee', title: 'Back from lunch', text: 'Took longer? The estimate moves back by exactly the extra minutes.'},
+                {time: '17:05', icon: 'moon', title: 'Evening out', text: 'The day is balanced to the minute and added to the week.'},
+            ] %}
+            {% for step in steps %}
+                <li class="bg-white p-6">
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono text-2xl font-medium tabular-nums text-ink-900">{{ step.time }}</span>
+                        <span class="flex h-9 w-9 items-center justify-center rounded-md bg-cobalt-50 text-cobalt-600">{{ icons.icon(step.icon, 'h-5 w-5') }}</span>
+                    </div>
+                    <h3 class="mt-4 text-base font-semibold text-ink-900">{{ step.title|trans }}</h3>
+                    <p class="mt-1.5 text-sm leading-6 text-ink-600">{{ step.text|trans }}</p>
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
+
+    {# ------------------------------------------------ Rules and multi-user #}
+    <section class="border-y border-ink-200 bg-white">
+        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-3 lg:px-8">
             {% set features = [
-                {icon: 'scale', title: 'Fair lunch-break rule', text: 'A break shorter than the minimum is not credited, so nobody games the clock. Pick the days where a shorter break is allowed.'},
-                {icon: 'calendar-x', title: 'Days off in one click', text: 'Mark a day off and it is simply removed from the week: no balance, no estimate, no noise.'},
-                {icon: 'shield', title: 'Multi-user &amp; self-hosted', text: 'Every colleague has an account and a schedule. Administrators manage accounts; data stays on your server.'},
+                {icon: 'scale', title: 'A fair lunch-break rule', text: 'A break shorter than the minimum is not credited, so the clock cannot be gamed. Choose the days where a shorter break is fine.'},
+                {icon: 'chart', title: 'The week adds up', text: 'Daily balances cumulate from Monday to Friday and shift the time you can leave today: ahead, leave earlier; behind, stay a bit.'},
+                {icon: 'calendar-x', title: 'Days off in one click', text: 'A day off leaves the week entirely: no balance, no estimate, no noise. Click again to bring it back.'},
             ] %}
             {% for feature in features %}
-                <div class="card card-body">
-                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-700 text-white">
-                        {{ icons.icon(feature.icon, 'h-6 w-6') }}
-                    </span>
-                    <h3 class="mt-4 text-lg font-semibold text-stone-900">{{ feature.title|raw }}</h3>
-                    <p class="mt-2 text-sm leading-6 text-stone-600">{{ feature.text }}</p>
+                <div>
+                    <span class="flex h-10 w-10 items-center justify-center rounded-md bg-ink-900 text-amber-400">{{ icons.icon(feature.icon, 'h-5 w-5') }}</span>
+                    <h3 class="mt-4 text-lg font-semibold text-ink-900">{{ feature.title|trans }}</h3>
+                    <p class="mt-2 text-sm leading-6 text-ink-600">{{ feature.text|trans }}</p>
                 </div>
             {% endfor %}
         </div>
+    </section>
 
-        <div class="mt-16 overflow-hidden rounded-3xl bg-brand-900 px-6 py-14 text-center text-white shadow-card sm:px-16">
-            <h2 class="text-3xl font-bold tracking-tight">Ready to leave on time?</h2>
-            <p class="mx-auto mt-3 max-w-xl text-brand-100">Create your account, set your weekly hours and lunch break, and start clocking today.</p>
-            <div class="mt-8 flex flex-wrap justify-center gap-3">
-                <a href="{{ path('app_register') }}" class="btn bg-white px-6 py-3 text-base text-brand-900 hover:bg-brand-50">
-                    Create your account
+    {# ------------------------------------------------ Call to action #}
+    <section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="flex flex-col items-start justify-between gap-6 rounded-2xl bg-ink-900 p-8 text-white sm:flex-row sm:items-center sm:p-12">
+            <div>
+                <h2 class="text-3xl font-bold">{{ 'Ready to leave on time?'|trans }}</h2>
+                <p class="mt-2 text-ink-300">{{ 'Create your account, set your weekly hours and lunch break, and clock in tomorrow morning.'|trans }}</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ path('app_register') }}" class="btn btn-amber btn-lg">
+                    {{ 'Create account'|trans }}
                     {{ icons.icon('arrow-right', 'h-5 w-5') }}
                 </a>
-                <a href="{{ path('app_login') }}" class="btn px-6 py-3 text-base text-white ring-1 ring-white/40 ring-inset hover:bg-white/10">I already have one</a>
+                <a href="{{ path('app_login') }}" class="btn btn-on-ink btn-lg">{{ 'I already have one'|trans }}</a>
             </div>
         </div>
     </section>

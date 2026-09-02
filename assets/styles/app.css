@@ -1,29 +1,61 @@
 @import "tailwindcss";
 
+/* Self-hosted typefaces (npm, no runtime CDN). */
+@import "@fontsource-variable/bricolage-grotesque/index.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+
 @source "../../templates";
 @source "../controllers";
 
 /* ------------------------------------------------------------------ */
-/* Design tokens                                                        */
+/* Design tokens — "time card": ink housing, paper sheet, cobalt ink,  */
+/* amber LED for what is live right now.                               */
 /* ------------------------------------------------------------------ */
 @theme {
-    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --font-display: "Bricolage Grotesque Variable", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-    /* Brand: deep teal */
-    --color-brand-50: oklch(0.98 0.02 185);
-    --color-brand-100: oklch(0.95 0.05 185);
-    --color-brand-200: oklch(0.90 0.09 185);
-    --color-brand-300: oklch(0.82 0.12 185);
-    --color-brand-400: oklch(0.72 0.13 185);
-    --color-brand-500: oklch(0.62 0.12 185);
-    --color-brand-600: oklch(0.53 0.11 185);
-    --color-brand-700: oklch(0.45 0.09 185);
-    --color-brand-800: oklch(0.38 0.07 185);
-    --color-brand-900: oklch(0.30 0.05 185);
-    --color-brand-950: oklch(0.22 0.04 185);
+    --color-ink-950: #0b0d1c;
+    --color-ink-900: #14172b;
+    --color-ink-800: #1e2240;
+    --color-ink-700: #2c3157;
+    --color-ink-600: #444a73;
+    --color-ink-500: #5e6488;
+    --color-ink-400: #8a8fad;
+    --color-ink-300: #b4b8cc;
+    --color-ink-200: #d9dbe6;
+    --color-ink-100: #ebecf2;
+    --color-ink-50: #f5f6fa;
 
-    --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+    --color-paper: #f2f3f7;
+
+    --color-cobalt-700: #1f3bc4;
+    --color-cobalt-600: #2b4cf2;
+    --color-cobalt-500: #4a66f5;
+    --color-cobalt-200: #c3cdfb;
+    --color-cobalt-100: #e1e6fd;
+    --color-cobalt-50: #f0f3fe;
+
+    --color-amber-500: #ffb020;
+    --color-amber-400: #ffc24d;
+    --color-amber-200: #ffe3a3;
+    --color-amber-100: #fff0c7;
+
+    --color-plus-700: #16764a;
+    --color-plus-600: #1e9e62;
+    --color-plus-100: #ddf5e8;
+    --color-minus-700: #a8281f;
+    --color-minus-600: #d1342f;
+    --color-minus-100: #fce3e1;
+
+    --shadow-sheet: 0 1px 0 0 rgb(20 23 43 / 0.06), 0 12px 32px -16px rgb(20 23 43 / 0.25);
+    --shadow-tile: inset 0 1px 0 0 rgb(255 255 255 / 0.08), 0 2px 0 0 rgb(0 0 0 / 0.45);
 }
 
 /* ------------------------------------------------------------------ */
@@ -31,123 +63,170 @@
 /* ------------------------------------------------------------------ */
 @layer base {
     html {
-        @apply antialiased text-stone-800 bg-stone-50;
+        @apply antialiased bg-paper text-ink-800;
     }
-
     body {
         @apply min-h-screen flex flex-col;
     }
-
     ::selection {
-        @apply bg-brand-200 text-brand-950;
+        @apply bg-amber-200 text-ink-950;
+    }
+    h1, h2, h3 {
+        @apply font-display tracking-tight;
+    }
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-cobalt-600;
     }
 }
 
 /* `input` is a utility so that other component classes can @apply it. */
 @utility input {
-    @apply block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-stone-900 shadow-sm
-           ring-1 ring-stone-300 ring-inset placeholder:text-stone-400
-           focus:ring-2 focus:ring-brand-600 focus:outline-none
-           disabled:bg-stone-100 disabled:text-stone-400;
+    @apply block w-full rounded-md border-0 bg-white px-3 py-2 text-sm text-ink-900
+           ring-1 ring-ink-200 ring-inset placeholder:text-ink-400
+           focus:ring-2 focus:ring-cobalt-600 focus:outline-none
+           disabled:bg-ink-50 disabled:text-ink-300;
 }
 
 /* ------------------------------------------------------------------ */
 /* Components                                                           */
 /* ------------------------------------------------------------------ */
 @layer components {
+    /* Buttons */
     .btn {
-        @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold whitespace-nowrap
-               transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500
-               disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold whitespace-nowrap
+               transition-colors disabled:cursor-not-allowed disabled:opacity-50;
     }
-    .btn-sm {
-        @apply px-3 py-1.5 text-xs;
+    .btn-sm { @apply px-3 py-1.5 text-xs; }
+    .btn-lg { @apply px-6 py-3 text-base; }
+    .btn-primary { @apply bg-cobalt-600 text-white hover:bg-cobalt-700; }
+    .btn-secondary { @apply bg-white text-ink-800 ring-1 ring-ink-200 ring-inset hover:bg-ink-50; }
+    .btn-ghost { @apply text-ink-600 hover:bg-ink-100 hover:text-ink-900; }
+    .btn-on-ink { @apply text-ink-100 ring-1 ring-white/15 ring-inset hover:bg-white/10 hover:text-white; }
+    .btn-amber { @apply bg-amber-400 text-ink-950 hover:bg-amber-500; }
+    .btn-danger-outline { @apply text-minus-700 ring-1 ring-minus-100 ring-inset hover:bg-minus-100; }
+    .btn-icon { @apply h-9 w-9 p-0 rounded-full; }
+
+    /* Paper sheets */
+    .sheet {
+        @apply rounded-xl bg-white shadow-sheet ring-1 ring-ink-900/8;
     }
-    .btn-primary {
-        @apply bg-brand-700 text-white hover:bg-brand-800 shadow-sm;
+    .sheet-body { @apply p-5 sm:p-6; }
+
+    /* Ink housing: dark band holding the navigation and the page title */
+    .band {
+        @apply bg-ink-900 text-white;
     }
-    .btn-secondary {
-        @apply bg-white text-stone-800 ring-1 ring-stone-200 ring-inset hover:bg-stone-50;
+    .band-title {
+        @apply font-display text-3xl font-bold tracking-tight text-white sm:text-4xl;
     }
-    .btn-ghost {
-        @apply text-stone-600 hover:bg-stone-100 hover:text-stone-900;
-    }
-    .btn-danger {
-        @apply bg-rose-600 text-white hover:bg-rose-700;
-    }
-    .btn-danger-outline {
-        @apply text-rose-700 ring-1 ring-rose-200 ring-inset hover:bg-rose-50;
-    }
-    .btn-icon {
-        @apply h-9 w-9 p-0 rounded-full;
+    .eyebrow {
+        @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em];
     }
 
-    .card {
-        @apply rounded-2xl bg-white shadow-card ring-1 ring-stone-900/5;
-    }
-    .card-body {
-        @apply p-5 sm:p-6;
-    }
+    /* Forms */
+    .input-invalid { @apply ring-minus-600 focus:ring-minus-600; }
+    .label { @apply block text-sm font-medium text-ink-700; }
+    .help { @apply mt-1 text-xs text-ink-500; }
+    .error { @apply mt-1 text-sm text-minus-700; }
+    .checkbox { @apply h-4 w-4 rounded border-ink-300 accent-cobalt-600; }
+    .clocking-time { @apply input px-1.5 py-1.5 text-center font-mono text-xs tabular-nums; }
 
-    .input-invalid {
-        @apply ring-rose-400 focus:ring-rose-500;
-    }
-    .label {
-        @apply block text-sm font-medium text-stone-700;
-    }
-    .help {
-        @apply mt-1 text-xs text-stone-500;
-    }
-    .error {
-        @apply mt-1 text-sm text-rose-600;
-    }
-    .checkbox {
-        @apply h-4 w-4 rounded border-stone-300 accent-brand-700 focus-visible:outline-brand-600;
-    }
-
+    /* Badges: balances read like stamps */
     .badge {
-        @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums whitespace-nowrap;
+        @apply inline-flex items-center gap-1 rounded-sm px-2 py-0.5 font-mono text-xs font-medium tabular-nums whitespace-nowrap;
     }
-    .badge-neutral {
-        @apply bg-stone-100 text-stone-600;
-    }
-    .badge-positive {
-        @apply bg-emerald-100 text-emerald-800;
-    }
-    .badge-negative {
-        @apply bg-rose-100 text-rose-800;
-    }
-    .badge-warning {
-        @apply bg-amber-100 text-amber-800;
-    }
+    .badge-neutral { @apply bg-ink-100 text-ink-500; }
+    .badge-positive { @apply bg-plus-100 text-plus-700; }
+    .badge-negative { @apply bg-minus-100 text-minus-700; }
+    .badge-live { @apply bg-amber-100 text-ink-900; }
 
-    .alert {
-        @apply flex items-start gap-3 rounded-xl px-4 py-3 text-sm ring-1 ring-inset;
-    }
-    .alert-success {
-        @apply bg-emerald-50 text-emerald-900 ring-emerald-200;
-    }
-    .alert-warning {
-        @apply bg-amber-50 text-amber-900 ring-amber-200;
-    }
-    .alert-danger {
-        @apply bg-rose-50 text-rose-900 ring-rose-200;
-    }
-    .alert-info {
-        @apply bg-brand-50 text-brand-900 ring-brand-200;
-    }
+    /* Alerts */
+    .alert { @apply flex items-start gap-3 rounded-md px-4 py-3 text-sm ring-1 ring-inset; }
+    .alert-success { @apply bg-plus-100 text-plus-700 ring-plus-600/20; }
+    .alert-warning { @apply bg-amber-100 text-ink-900 ring-amber-500/40; }
+    .alert-danger { @apply bg-minus-100 text-minus-700 ring-minus-600/20; }
+    .alert-info { @apply bg-cobalt-50 text-cobalt-700 ring-cobalt-200; }
 
+    /* Navigation on the ink band */
     .nav-link {
-        @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-600
-               hover:bg-stone-100 hover:text-stone-900 transition-colors;
+        @apply relative inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-ink-300
+               hover:bg-white/8 hover:text-white transition-colors;
     }
-    .nav-link-active {
-        @apply bg-brand-50 text-brand-800;
+    .nav-link-active { @apply text-white; }
+    .nav-link-active::after {
+        content: "";
+        @apply absolute -bottom-0.5 left-3 right-3 h-0.5 rounded-full bg-amber-400;
     }
 
-    .clocking-time {
-        @apply input px-1.5 py-1.5 text-center font-mono text-xs tabular-nums;
+    /* Language switch */
+    .lang-switch {
+        @apply inline-flex items-center rounded-md p-0.5 font-mono text-xs font-medium ring-1 ring-inset;
     }
+    .lang-switch a {
+        @apply rounded-[5px] px-2 py-1 transition-colors;
+    }
+    .lang-switch-ink { @apply ring-white/15 text-ink-300; }
+    .lang-switch-ink a[aria-current] { @apply bg-white text-ink-900; }
+    .lang-switch-ink a:not([aria-current]):hover { @apply text-white; }
+    .lang-switch-paper { @apply ring-ink-200 text-ink-500 bg-white; }
+    .lang-switch-paper a[aria-current] { @apply bg-ink-900 text-white; }
+    .lang-switch-paper a:not([aria-current]):hover { @apply text-ink-900; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Signature: split-flap display for the leaving time                  */
+/* ------------------------------------------------------------------ */
+.flap {
+    @apply inline-flex items-center gap-[0.12em] font-mono font-medium leading-none tabular-nums;
+    font-size: var(--flap-size, 2.5rem);
+    perspective: 600px;
+}
+.flap-digit {
+    @apply relative inline-flex h-[1.4em] w-[0.95em] items-center justify-center rounded-[0.14em] bg-ink-900 text-white shadow-tile;
+    transform-origin: center;
+    animation: flap-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+/* the horizontal split of a real flap board */
+.flap-digit::after {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-1/2 h-px bg-ink-950;
+}
+.flap-digit::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-[0.14em] bg-white/6;
+}
+.flap-colon {
+    @apply mx-[0.05em] text-ink-400;
+}
+.flap-amber .flap-digit { @apply text-amber-400; }
+.flap-muted .flap-digit { @apply bg-ink-200 text-ink-400 shadow-none; }
+.flap-muted .flap-digit::after { @apply bg-ink-300; }
+.flap-muted .flap-digit::before { @apply bg-transparent; }
+.flap-on-paper .flap-digit { @apply ring-1 ring-ink-950/20; }
+
+@keyframes flap-in {
+    0%   { transform: rotateX(-90deg); opacity: 0; }
+    60%  { transform: rotateX(12deg); opacity: 1; }
+    100% { transform: rotateX(0deg); opacity: 1; }
+}
+.flap.is-flipping .flap-digit {
+    animation: flap-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 40ms);
+}
+@media (prefers-reduced-motion: reduce) {
+    .flap-digit, .flap.is-flipping .flap-digit { animation: none; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Time-card grid lines                                                 */
+/* ------------------------------------------------------------------ */
+.timecard thead th {
+    @apply border-b-2 border-ink-900;
+}
+.timecard tbody tr + tr td,
+.timecard tbody tr + tr th {
+    @apply border-t border-dashed border-ink-200;
 }
 
 /* ------------------------------------------------------------------ */
@@ -159,15 +238,9 @@
     gap: 3px;
 }
 .mine-cell {
-    @apply aspect-square flex items-center justify-center rounded-md bg-stone-300 text-sm font-bold text-stone-700
-           cursor-pointer select-none hover:bg-stone-400 transition-colors;
+    @apply aspect-square flex items-center justify-center rounded-sm bg-ink-200 font-mono text-sm font-semibold text-ink-700
+           cursor-pointer select-none hover:bg-ink-300 transition-colors;
 }
-.mine-cell.is-revealed {
-    @apply bg-stone-100 cursor-default hover:bg-stone-100;
-}
-.mine-cell.is-mine {
-    @apply bg-rose-100 p-0.5;
-}
-.mine-cell img {
-    @apply h-full w-full object-contain rounded;
-}
+.mine-cell.is-revealed { @apply bg-ink-50 cursor-default hover:bg-ink-50; }
+.mine-cell.is-mine { @apply bg-minus-100 p-0.5; }
+.mine-cell img { @apply h-full w-full object-contain rounded; }

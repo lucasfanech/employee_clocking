@@ -1,0 +1,19 @@
+{#
+    Split-flap time display — the signature element of the interface.
+    {{ flap.display('16:31') }}            dark tiles, white digits
+    {{ flap.display('16:03', 'flap-amber') }}  amber digits (live / adjusted value)
+    {{ flap.display(null) }}               muted "--:--"
+#}
+{% macro display(value, variant = '', size = null) %}
+{%- set value = value ?? '--:--' -%}
+{%- set variant = value == '--:--' ? (variant ~ ' flap-muted')|trim : variant -%}
+<span class="flap {{ variant }}" role="img" aria-label="{{ value }}"{% if size %} style="--flap-size: {{ size }}"{% endif %}>
+    {%- for ch in value|split('') -%}
+        {%- if ch == ':' -%}
+            <span class="flap-colon" aria-hidden="true">:</span>
+        {%- else -%}
+            <span class="flap-digit" style="--i: {{ loop.index0 }}" aria-hidden="true">{{ ch }}</span>
+        {%- endif -%}
+    {%- endfor -%}
+</span>
+{%- endmacro %}

@@ -5,6 +5,7 @@ your weekly target, the cumulated balance of the week and the exact time you can
 
 Built with **Symfony 7.4 LTS** (PHP ≥ 8.2), **Doctrine ORM 3**, **Tailwind CSS 4** + **Stimulus**
 (Webpack Encore 7) and shipped as a **Docker Compose** stack (nginx, PHP-FPM, MySQL 8.4, phpMyAdmin).
+The interface is available in **English and French** (switch in the header, remembered in the session).
 
 - [Quick start](#quick-start)
 - [How the hours are computed](#how-the-hours-are-computed)
@@ -86,6 +87,15 @@ php bin/console make:migration         # after changing an entity
 npm run build                          # production assets
 ```
 
+## Interface and translations
+
+- Design tokens (colours, typefaces, the split-flap time display) live in `assets/styles/app.css`.
+  Typefaces are self-hosted from npm (Bricolage Grotesque for display, IBM Plex Sans / Mono).
+- Templates use the English sentence as translation key; French strings are in
+  `translations/messages.fr.yaml` (and `validators.fr.yaml` for validation messages). Add a locale by
+  listing it in `config/packages/translation.yaml` and adding the `messages.<locale>.yaml` file.
+- The first visit follows the browser language; `/locale/{en|fr}` stores the choice in the session.
+
 ## Project layout
 
 ```
@@ -93,10 +103,11 @@ assets/            Tailwind stylesheet and Stimulus controllers (week live previ
 config/            Symfony configuration
 docker/            nginx and PHP-FPM configuration, container entrypoint
 migrations/        Doctrine migrations (MySQL)
-src/Controller     Landing, registration, security, week grid, schedule, profile, admin
+src/Controller     Landing, registration, security, locale switch, week grid, schedule, profile, admin
 src/Entity         User, WorkSchedule (rules), WorkDay (four times of a day or a day off)
 src/Service        WorkTimeCalculator (the rules), WeekSummaryBuilder, UserManager
 src/Time           WeekReference (ISO week), DayTimes, Duration helpers
-templates/         Twig templates (Tailwind form theme in templates/form)
+templates/         Twig templates (Tailwind form theme in templates/form, flap display in _partials)
+translations/      French translations (English strings are the keys)
 tests/             PHPUnit unit and functional tests
 ```

@@ -74,7 +74,7 @@ final class ScheduleAndProfileTest extends AppWebTestCase
         $this->entityManager()->flush();
 
         $crawler = $this->client->request('GET', '/profile');
-        $this->client->submit($crawler->selectButton('Reset all my clocking data')->form());
+        $this->client->submit($crawler->selectButton('Delete all my clocking data')->form());
         self::assertResponseRedirects('/profile');
 
         $this->entityManager()->clear();

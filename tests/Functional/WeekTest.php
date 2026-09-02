@@ -63,7 +63,7 @@ final class WeekTest extends AppWebTestCase
 
         self::assertResponseRedirects('/week/2024/10');
         $crawler = $this->client->followRedirect();
-        self::assertSelectorTextContains('.alert-success', 'saved');
+        self::assertSelectorTextContains('.alert-success', 'Times saved.');
 
         $rows = $this->entityManager()->getRepository(WorkDay::class)->findBy(['user' => $user], ['date' => 'ASC']);
         self::assertCount(3, $rows, 'Only days with data are stored');

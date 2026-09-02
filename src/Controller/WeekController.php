@@ -20,6 +20,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The weekly clocking grid.
@@ -32,6 +33,7 @@ final class WeekController extends AbstractController
         private readonly WorkDayRepository $workDays,
         private readonly WeekSummaryBuilder $summaryBuilder,
         private readonly EntityManagerInterface $entityManager,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
@@ -48,7 +50,7 @@ final class WeekController extends AbstractController
     {
         $schedule = $user->getSchedule();
         if (null === $schedule) {
-            $this->addFlash('warning', 'Please configure your working hours first.');
+            $this->addFlash('warning', $this->translator->trans('Please set your working hours first.'));
 
             return $this->redirectToRoute('app_schedule');
         }
@@ -62,7 +64,7 @@ final class WeekController extends AbstractController
                 $this->storeDay($day);
             }
             $this->entityManager->flush();
-            $this->addFlash('success', 'All clocking data saved.');
+            $this->addFlash('success', $this->translator->trans('Times saved.'));
 
             return $this->redirectToRoute('app_week', ['year' => $reference->year, 'week' => $reference->week]);
         }
@@ -87,16 +89,18 @@ final class WeekController extends AbstractController
 
     #[Route('/week/{year}/{week}/day-off/{index}', name: 'app_week_day_off', requirements: self::ROUTE_REQUIREMENTS + ['index' => '[0-4]'], methods: ['POST'])]
     #[IsCsrfTokenValid('day-off', tokenKey: '_token')]
-    public function toggleDayOff(WeekReference $reference, int $index, #[CurrentUser] User $user): Response
+    public function toggleDayOff(WeekReference $reference, int $index, Request $request, #[CurrentUser] User $user): Response
     {
         $day = $this->workDays->findWeek($user, $reference)[$index];
         $day->setDayOff(!$day->isDayOff());
         $this->storeDay($day);
         $this->entityManager->flush();
 
-        $this->addFlash('success', $day->isDayOff()
-            ? \sprintf('%s marked as a day off.', $day->getDate()->format('l'))
-            : \sprintf('%s is a working day again.', $day->getDate()->format('l')));
+        $dayName = ucfirst((string) \IntlDateFormatter::formatObject($day->getDate(), 'EEEE', $request->getLocale()));
+        $this->addFlash('success', $this->translator->trans(
+            $day->isDayOff() ? '%day% marked as a day off.' : '%day% is a working day again.',
+            ['%day%' => $dayName],
+        ));
 
         return $this->redirectToRoute('app_week', ['year' => $reference->year, 'week' => $reference->week]);
     }

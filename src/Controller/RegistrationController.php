@@ -13,6 +13,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class RegistrationController extends AbstractController
 {
@@ -22,6 +23,7 @@ final class RegistrationController extends AbstractController
         UserManager $userManager,
         UserRepository $users,
         Security $security,
+        TranslatorInterface $translator,
     ): Response {
         if (null !== $this->getUser()) {
             return $this->redirectToRoute('app_home');
@@ -41,9 +43,9 @@ final class RegistrationController extends AbstractController
                 $isFirstAccount,
             );
 
-            $this->addFlash('success', $isFirstAccount
-                ? 'Welcome! Your account is the first one, so it has been granted the administrator role.'
-                : 'Welcome! Your account is ready, check your working hours below.');
+            $this->addFlash('success', $translator->trans($isFirstAccount
+                ? 'Welcome! Your account is the first one, so it has the administrator role.'
+                : 'Welcome! Your account is ready. Check your working hours before clocking in.'));
 
             return $security->login($user, 'form_login', 'main')
                 ?? $this->redirectToRoute('app_schedule');

@@ -1,24 +1,24 @@
 {% import '_partials/icons.html.twig' as icons %}
 {# Easter egg kept from the original app: a small minesweeper behind a "Surprise!" button. #}
 <div data-controller="toggle" data-action="keydown@window->toggle#closeOnEscape">
-    <button type="button" class="btn btn-ghost w-full text-stone-500" data-action="toggle#open">
+    <button type="button" class="btn btn-ghost w-full text-ink-400" data-action="toggle#open">
         {{ icons.icon('egg', 'h-4 w-4') }}
-        Surprise!
+        {{ 'Surprise!'|trans }}
     </button>
 
-    <div class="fixed inset-0 z-40 flex items-center justify-center bg-stone-900/60 p-4 backdrop-blur-sm" data-toggle-target="panel" hidden role="dialog" aria-modal="true" aria-labelledby="minesweeper-title">
-        <div class="card w-full max-w-md" data-controller="minesweeper" data-minesweeper-image-value="{{ asset('images/mine.png') }}">
-            <div class="flex items-center justify-between border-b border-stone-100 px-5 py-4">
-                <h2 id="minesweeper-title" class="font-semibold text-stone-900">Easter egg · Minesweeper</h2>
-                <button type="button" class="btn btn-ghost btn-icon" data-action="toggle#close" aria-label="Close">
+    <div class="fixed inset-0 z-40 flex items-center justify-center bg-ink-950/70 p-4 backdrop-blur-sm" data-toggle-target="panel" hidden role="dialog" aria-modal="true" aria-labelledby="minesweeper-title">
+        <div class="sheet w-full max-w-md" data-controller="minesweeper" data-minesweeper-image-value="{{ asset('images/mine.png') }}">
+            <div class="flex items-center justify-between border-b border-ink-200 px-5 py-4">
+                <h2 id="minesweeper-title" class="font-semibold text-ink-900">{{ 'Easter egg · Minesweeper'|trans }}</h2>
+                <button type="button" class="btn btn-ghost btn-icon" data-action="toggle#close" aria-label="{{ 'Close'|trans }}">
                     {{ icons.icon('x', 'h-5 w-5') }}
                 </button>
             </div>
-            <div class="card-body space-y-4">
-                <div class="flex items-center justify-between text-sm text-stone-600">
-                    <span>Time: <span class="font-mono font-semibold tabular-nums text-stone-900" data-minesweeper-target="timer">0</span>s</span>
-                    <span>Best: <span class="font-mono font-semibold tabular-nums text-stone-900" data-minesweeper-target="best">N/A</span></span>
-                    <button type="button" class="btn btn-secondary btn-sm" data-action="minesweeper#restart">Restart</button>
+            <div class="sheet-body space-y-4">
+                <div class="flex items-center justify-between text-sm text-ink-600">
+                    <span>{{ 'Time'|trans }}: <span class="font-mono font-semibold tabular-nums text-ink-900" data-minesweeper-target="timer">0</span>s</span>
+                    <span>{{ 'Best'|trans }}: <span class="font-mono font-semibold tabular-nums text-ink-900" data-minesweeper-target="best">N/A</span></span>
+                    <button type="button" class="btn btn-secondary btn-sm" data-action="minesweeper#restart">{{ 'Restart'|trans }}</button>
                 </div>
                 <p class="alert alert-info justify-center font-semibold" data-minesweeper-target="message" hidden></p>
                 <div class="mine-grid" data-minesweeper-target="grid"></div>

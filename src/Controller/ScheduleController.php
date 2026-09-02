@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Working-hours configuration of the connected user.
@@ -25,6 +26,7 @@ final class ScheduleController extends AbstractController
         #[CurrentUser] User $user,
         UserManager $userManager,
         EntityManagerInterface $entityManager,
+        TranslatorInterface $translator,
     ): Response {
         $isNew = null === $user->getSchedule();
         $schedule = $userManager->ensureSchedule($user);
@@ -34,7 +36,7 @@ final class ScheduleController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Configuration saved.');
+            $this->addFlash('success', $translator->trans('Working hours saved.'));
 
             return $this->redirectToRoute('app_home');
         }

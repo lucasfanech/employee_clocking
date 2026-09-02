@@ -9,10 +9,11 @@ import { Controller } from '@hotwired/stimulus';
  */
 export default class extends Controller {
     static values = { previewUrl: String };
-    static targets = ['time', 'balance', 'cumulated', 'leaving', 'adjusted', 'cumulatedBefore', 'clockedOut', 'status'];
+    static targets = ['time', 'balance', 'cumulated', 'leaving', 'adjusted', 'cumulatedBefore', 'clockedOut', 'status', 'hintEmpty', 'hintFilled'];
 
     connect() {
         this.abortController = null;
+        this.statusDefault = this.hasStatusTarget ? this.statusTarget.textContent : '';
     }
 
     disconnect() {
@@ -28,7 +29,7 @@ export default class extends Controller {
     async #fetchPreview() {
         this.abortController?.abort();
         this.abortController = new AbortController();
-        this.#setStatus('Computing…');
+        this.#setStatus(this.element.dataset.weekStatusComputing || '…');
 
         try {
             const response = await fetch(this.previewUrlValue, {
@@ -41,10 +42,10 @@ export default class extends Controller {
                 throw new Error(`HTTP ${response.status}`);
             }
             this.#paint(await response.json());
-            this.#setStatus('Unsaved changes – press Save to keep them.');
+            this.#setStatus(this.element.dataset.weekStatusUnsaved || this.statusDefault);
         } catch (error) {
             if (error.name !== 'AbortError') {
-                this.#setStatus('Could not compute the balances.');
+                this.#setStatus(this.element.dataset.weekStatusError || this.statusDefault);
             }
         }
     }
@@ -66,16 +67,23 @@ export default class extends Controller {
 
         const today = summary.today;
         if (this.hasLeavingTarget) {
-            this.leavingTarget.textContent = today?.leavingTime ?? '--:--';
+            this.#paintFlap(this.leavingTarget, today?.leavingTime ?? null, '');
         }
         if (this.hasAdjustedTarget) {
-            this.adjustedTarget.textContent = today?.adjustedLeavingTime ?? '--:--';
+            this.#paintFlap(this.adjustedTarget, today?.adjustedLeavingTime ?? null, 'flap-amber');
         }
         if (this.hasCumulatedBeforeTarget && today) {
             this.#paintBadge(this.cumulatedBeforeTarget, today.cumulatedBefore);
         }
         if (this.hasClockedOutTarget) {
             this.clockedOutTarget.hidden = !today?.clockedOut;
+        }
+        const hasEstimate = Boolean(today?.leavingTime);
+        if (this.hasHintEmptyTarget) {
+            this.hintEmptyTarget.hidden = hasEstimate;
+        }
+        if (this.hasHintFilledTarget) {
+            this.hintFilledTarget.hidden = !hasEstimate;
         }
     }
 
@@ -90,6 +98,24 @@ export default class extends Controller {
         } else {
             element.classList.add(value.startsWith('-') ? 'badge-negative' : 'badge-positive');
         }
+    }
+
+    /** Re-render the split-flap display (same markup as templates/_partials/flap.html.twig). */
+    #paintFlap(container, value, variant) {
+        const flap = container.querySelector('.flap');
+        const current = flap?.getAttribute('aria-label');
+        const text = value ?? '--:--';
+        if (current === text) {
+            return;
+        }
+        const size = flap?.style.getPropertyValue('--flap-size') || '';
+        const classes = ['flap', variant, text === '--:--' ? 'flap-muted' : '', 'is-flipping'].filter(Boolean).join(' ');
+        const digits = Array.from(text, (ch, i) =>
+            ch === ':'
+                ? '<span class="flap-colon" aria-hidden="true">:</span>'
+                : `<span class="flap-digit" style="--i: ${i}" aria-hidden="true">${ch}</span>`,
+        ).join('');
+        container.innerHTML = `<span class="${classes}" role="img" aria-label="${text}"${size ? ` style="--flap-size: ${size}"` : ''}>${digits}</span>`;
     }
 
     #setStatus(text) {

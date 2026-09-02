@@ -1,0 +1,7 @@
+# Custom validation messages (Symfony's own constraint messages are translated by the framework).
+"There is already an account with this email.": "Un compte existe déjà avec cet e-mail."
+"Times must be in chronological order.": "Les heures doivent être dans l'ordre chronologique."
+"The password fields must match.": "Les deux mots de passe doivent être identiques."
+"Please enter a password.": "Veuillez saisir un mot de passe."
+"Your password should be at least {{ limit }} characters.": "Votre mot de passe doit contenir au moins {{ limit }} caractères."
+"The password should be at least {{ limit }} characters.": "Le mot de passe doit contenir au moins {{ limit }} caractères."

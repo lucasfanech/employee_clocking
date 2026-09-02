@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsCsrfTokenValid;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/profile')]
 final class ProfileController extends AbstractController
@@ -26,6 +27,7 @@ final class ProfileController extends AbstractController
         #[CurrentUser] User $user,
         UserManager $userManager,
         EntityManagerInterface $entityManager,
+        TranslatorInterface $translator,
     ): Response {
         $profileForm = $this->createForm(ProfileType::class, $user);
         $passwordForm = $this->createForm(ChangePasswordType::class);
@@ -33,7 +35,7 @@ final class ProfileController extends AbstractController
         $profileForm->handleRequest($request);
         if ($profileForm->isSubmitted() && $profileForm->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Profile updated.');
+            $this->addFlash('success', $translator->trans('E-mail updated.'));
 
             return $this->redirectToRoute('app_profile');
         }
@@ -42,7 +44,7 @@ final class ProfileController extends AbstractController
         if ($passwordForm->isSubmitted() && $passwordForm->isValid()) {
             $userManager->setPassword($user, (string) $passwordForm->get('plainPassword')->getData());
             $entityManager->flush();
-            $this->addFlash('success', 'Password changed.');
+            $this->addFlash('success', $translator->trans('Password changed.'));
 
             return $this->redirectToRoute('app_profile');
         }
@@ -55,10 +57,10 @@ final class ProfileController extends AbstractController
 
     #[Route('/reset-data', name: 'app_profile_reset_data', methods: ['POST'])]
     #[IsCsrfTokenValid('reset-data', tokenKey: '_token')]
-    public function resetData(#[CurrentUser] User $user, WorkDayRepository $workDays): Response
+    public function resetData(#[CurrentUser] User $user, WorkDayRepository $workDays, TranslatorInterface $translator): Response
     {
         $deleted = $workDays->deleteAllForUser($user);
-        $this->addFlash('success', \sprintf('All clocking data reset (%d day(s) removed).', $deleted));
+        $this->addFlash('success', $translator->trans('All clocking data deleted (%count% day(s) removed).', ['%count%' => $deleted]));
 
         return $this->redirectToRoute('app_profile');
     }

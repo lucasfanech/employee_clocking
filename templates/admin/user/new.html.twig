@@ -1,28 +1,30 @@
 {% extends 'base.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
 
-{% block title %}New account · Clocking{% endblock %}
+{% block title %}{{ 'New account'|trans }} · Clocking{% endblock %}
+
+{% block band %}
+    <div class="mx-auto max-w-lg">
+        <a href="{{ path('admin_users') }}" class="inline-flex items-center gap-1 text-sm font-medium text-ink-300 hover:text-white">
+            {{ icons.icon('chevron-left', 'h-4 w-4') }} {{ 'Accounts'|trans }}
+        </a>
+        <h1 class="band-title mt-2">{{ 'New account'|trans }}</h1>
+        <p class="mt-3 text-ink-300">{{ 'The account starts with the default working hours: 38h30 a week, 1h lunch break, 45 min on Friday.'|trans }}</p>
+    </div>
+{% endblock %}
 
 {% block body %}
     <div class="mx-auto max-w-lg">
-        <div class="mb-6">
-            <a href="{{ path('admin_users') }}" class="inline-flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-stone-800">
-                {{ icons.icon('chevron-left', 'h-4 w-4') }} Accounts
-            </a>
-            <h1 class="mt-2 text-3xl font-bold tracking-tight text-stone-900">New account</h1>
-            <p class="mt-1 text-sm text-stone-600">The account is created with the default working hours (38h30, 1h lunch break, 45 min on Friday).</p>
-        </div>
-
-        <section class="card card-body">
+        <section class="sheet sheet-body">
             {{ form_start(form, {attr: {class: 'space-y-5', novalidate: 'novalidate'}}) }}
                 {{ form_row(form.email) }}
                 {{ form_row(form.plainPassword) }}
                 {{ form_row(form.admin) }}
                 <div class="flex items-center justify-end gap-3 pt-2">
-                    <a href="{{ path('admin_users') }}" class="btn btn-ghost">Cancel</a>
+                    <a href="{{ path('admin_users') }}" class="btn btn-ghost">{{ 'Cancel'|trans }}</a>
                     <button type="submit" class="btn btn-primary">
                         {{ icons.icon('plus', 'h-4 w-4') }}
-                        Create account
+                        {{ 'Create account'|trans }}
                     </button>
                 </div>
             {{ form_end(form) }}

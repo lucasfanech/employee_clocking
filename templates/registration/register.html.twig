@@ -1,9 +1,9 @@
 {% extends '_partials/auth_layout.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
 
-{% block title %}Create an account · Clocking{% endblock %}
-{% block auth_heading %}Create your account{% endblock %}
-{% block auth_subheading %}Takes a minute. You will set your weekly hours right after.{% endblock %}
+{% block title %}{{ 'Create account'|trans }} · Clocking{% endblock %}
+{% block auth_heading %}{{ 'Create your account'|trans }}{% endblock %}
+{% block auth_subheading %}{{ 'One minute. You set your weekly hours right after.'|trans }}{% endblock %}
 
 {% block auth_form %}
     {{ form_start(form, {attr: {class: 'space-y-5', novalidate: 'novalidate'}}) }}
@@ -11,12 +11,12 @@
         {{ form_row(form.plainPassword.first) }}
         {{ form_row(form.plainPassword.second) }}
         <button type="submit" class="btn btn-primary w-full py-2.5">
-            Create account
+            {{ 'Create account'|trans }}
             {{ icons.icon('arrow-right', 'h-5 w-5') }}
         </button>
     {{ form_end(form) }}
 {% endblock %}
 
 {% block auth_footer %}
-    Already registered? <a href="{{ path('app_login') }}" class="font-semibold text-brand-700 hover:text-brand-800">Sign in</a>.
+    {{ 'Already registered?'|trans }} <a href="{{ path('app_login') }}" class="font-semibold text-cobalt-600 hover:text-cobalt-700">{{ 'Sign in'|trans }}</a>.
 {% endblock %}

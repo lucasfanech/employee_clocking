@@ -1,78 +1,81 @@
 {% extends 'base.html.twig' %}
 {% import '_partials/icons.html.twig' as icons %}
 
-{% block title %}Accounts · Clocking{% endblock %}
+{% block title %}{{ 'Accounts'|trans }} · Clocking{% endblock %}
 
-{% block body %}
-    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+{% block band %}
+    <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold tracking-tight text-stone-900">Accounts</h1>
-            <p class="mt-1 text-sm text-stone-600">{{ users|length }} account{{ users|length > 1 ? 's' }}. Every account has its own working hours and clocking data.</p>
+            <p class="eyebrow text-amber-400">{{ 'Administration'|trans }}</p>
+            <h1 class="band-title mt-2">{{ 'Accounts'|trans }}</h1>
+            <p class="mt-3 text-ink-300">{{ '%count% account(s). Every account has its own working hours and clocking data.'|trans({'%count%': users|length}) }}</p>
         </div>
-        <a href="{{ path('admin_user_new') }}" class="btn btn-primary">
+        <a href="{{ path('admin_user_new') }}" class="btn btn-amber">
             {{ icons.icon('plus', 'h-4 w-4') }}
-            New account
+            {{ 'New account'|trans }}
         </a>
     </div>
+{% endblock %}
 
-    <section class="card overflow-hidden">
+{% block body %}
+    <section class="sheet overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[48rem] text-sm">
-                <thead class="bg-stone-50 text-left text-xs uppercase tracking-wide text-stone-500">
-                    <tr>
-                        <th scope="col" class="px-5 py-3 font-semibold">Account</th>
-                        <th scope="col" class="px-3 py-3 font-semibold">Role</th>
-                        <th scope="col" class="px-3 py-3 font-semibold">Reset password</th>
-                        <th scope="col" class="px-5 py-3 text-right font-semibold">Actions</th>
+            <table class="timecard w-full min-w-[48rem] text-sm">
+                <thead class="text-left">
+                    <tr class="eyebrow text-ink-500">
+                        <th scope="col" class="px-5 py-3 font-medium">{{ 'Account'|trans }}</th>
+                        <th scope="col" class="px-3 py-3 font-medium">{{ 'Role'|trans }}</th>
+                        <th scope="col" class="px-3 py-3 font-medium">{{ 'Reset password'|trans }}</th>
+                        <th scope="col" class="px-5 py-3 text-right font-medium">{{ 'Actions'|trans }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-stone-100">
+                <tbody>
+                    {% set token = csrf_token('admin-user') %}
                     {% for user in users %}
                         {% set is_me = user.id == app.user.id %}
-                        {% set token = csrf_token('admin-user') %}
                         <tr>
                             <td class="px-5 py-3 align-middle">
                                 <div class="flex items-center gap-3">
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-sm font-bold uppercase text-brand-800">{{ user.displayName|first }}</span>
+                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink-900 font-mono text-sm font-semibold uppercase text-amber-400">{{ user.displayName|first }}</span>
                                     <div>
-                                        <p class="font-semibold text-stone-900">{{ user.email }}</p>
-                                        <p class="text-xs text-stone-500">#{{ user.id }}{% if is_me %} · you{% endif %}</p>
+                                        <p class="font-semibold text-ink-900">{{ user.email }}</p>
+                                        <p class="font-mono text-xs text-ink-500">#{{ user.id }}{% if is_me %} · {{ 'you'|trans }}{% endif %}</p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-3 py-3 align-middle">
                                 <form method="post" action="{{ path('admin_user_role', {id: user.id}) }}" class="flex items-center gap-2">
                                     <input type="hidden" name="_token" value="{{ token }}">
-                                    <select name="role" class="input w-36 py-1.5" aria-label="Role of {{ user.email }}" {% if is_me %}disabled title="You cannot change your own role"{% endif %}>
-                                        <option value="user" {% if not user.isAdmin %}selected{% endif %}>User</option>
-                                        <option value="admin" {% if user.isAdmin %}selected{% endif %}>Administrator</option>
+                                    <select name="role" class="input w-40 py-1.5" aria-label="{{ 'Role of %email%'|trans({'%email%': user.email}) }}" {% if is_me %}disabled title="{{ 'You cannot change your own role.'|trans }}"{% endif %}>
+                                        <option value="user" {% if not user.isAdmin %}selected{% endif %}>{{ 'User'|trans }}</option>
+                                        <option value="admin" {% if user.isAdmin %}selected{% endif %}>{{ 'Administrator'|trans }}</option>
                                     </select>
-                                    <button type="submit" class="btn btn-secondary btn-sm" {% if is_me %}disabled{% endif %}>Apply</button>
+                                    <button type="submit" class="btn btn-secondary btn-sm" {% if is_me %}disabled{% endif %}>{{ 'Apply'|trans }}</button>
                                 </form>
                             </td>
                             <td class="px-3 py-3 align-middle">
                                 <form method="post" action="{{ path('admin_user_password', {id: user.id}) }}" class="flex items-center gap-2">
                                     <input type="hidden" name="_token" value="{{ token }}">
-                                    <input type="password" name="password" class="input w-44 py-1.5" placeholder="New password" minlength="8" autocomplete="new-password" aria-label="New password for {{ user.email }}" required>
+                                    <input type="password" name="password" class="input w-44 py-1.5" placeholder="{{ 'New password'|trans }}" minlength="8" autocomplete="new-password" aria-label="{{ 'New password for %email%'|trans({'%email%': user.email}) }}" required>
                                     <button type="submit" class="btn btn-secondary btn-sm">
                                         {{ icons.icon('key', 'h-4 w-4') }}
-                                        Set
+                                        {{ 'Set'|trans }}
                                     </button>
                                 </form>
                             </td>
                             <td class="px-5 py-3 text-right align-middle">
                                 <form method="post" action="{{ path('admin_user_delete', {id: user.id}) }}" class="inline"
-                                      data-controller="confirm" data-confirm-message-value="Delete {{ user.email }} and all their clocking data?" data-action="submit->confirm#ask">
+                                      data-controller="confirm" data-confirm-message-value="{{ 'Delete %email% and all their clocking data?'|trans({'%email%': user.email}) }}" data-action="submit->confirm#ask">
                                     <input type="hidden" name="_token" value="{{ token }}">
-                                    <button type="submit" class="btn btn-danger-outline btn-sm" {% if is_me %}disabled title="You cannot delete your own account"{% endif %}>
+                                    <button type="submit" class="btn btn-danger-outline btn-sm" {% if is_me %}disabled title="{{ 'You cannot delete your own account.'|trans }}"{% endif %}>
                                         {{ icons.icon('trash', 'h-4 w-4') }}
-                                        Delete
+                                        {{ 'Delete'|trans }}
                                     </button>
                                 </form>
                             </td>
                         </tr>
                     {% else %}
-                        <tr><td colspan="4" class="px-5 py-8 text-center text-stone-500">No account yet.</td></tr>
+                        <tr><td colspan="4" class="px-5 py-8 text-center text-ink-500">{{ 'No account yet.'|trans }}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
