@@ -21,7 +21,7 @@ ACME_EMAIL="${ACME_EMAIL:?ACME_EMAIL is required (e-mail for the LetsEncrypt acc
 APP_ADMIN_EMAIL="${APP_ADMIN_EMAIL:-admin@${APP_DOMAIN}}"
 
 log() { printf '\n\033[1;36m>> %s\033[0m\n' "$*"; }
-random() { tr -dc 'A-Za-z0-9' </dev/urandom | head -c "${1:-32}"; }
+random() { head -c 4096 /dev/urandom | tr -dc 'A-Za-z0-9' | head -c "${1:-32}" || true; }
 
 # ---------------------------------------------------------------- Docker
 if ! command -v docker >/dev/null 2>&1; then
