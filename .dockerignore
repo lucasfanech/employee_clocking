@@ -16,3 +16,4 @@ docs
 !README.md
 Makefile
 compose*.yaml
+deploy

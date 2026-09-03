@@ -5,6 +5,11 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # Behind Traefik / nginx in Docker: trust the X-Forwarded-* headers of the private network
+    # so that HTTPS is detected (secure cookies, absolute URLs). See TRUSTED_PROXIES in .env.
+    trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-host']
+
     #esi: true
     #fragments: true
 
