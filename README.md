@@ -46,30 +46,43 @@ Ports, database credentials and the bootstrap admin are configurable through `.e
 on the host. For a production-like run use `docker compose -f compose.yaml up -d --build`
 (compiled assets and dependencies are baked into the images).
 
-## Production deployment (Traefik + HTTPS)
+## Production deployment (behind a host Caddy)
 
-`compose.prod.yaml` adds a Traefik reverse proxy with Let's Encrypt certificates and routes two
-domains: the application and phpMyAdmin. On a fresh Debian/Ubuntu VPS, as root:
+`compose.prod.yaml` publishes nginx and phpMyAdmin on loopback ports so a reverse proxy already
+running on the host (Caddy, nginx…) terminates TLS and routes the two domains. On a Debian/Ubuntu
+VPS that already runs Caddy, as root:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/lucasfanech/employee_clocking/<branch>/deploy/vps-install.sh \
   | APP_DOMAIN=clocking.example.com PMA_DOMAIN=phpmyadmin.clocking.example.com \
-    ACME_EMAIL=you@example.com BRANCH=<branch> bash
+    BRANCH=<branch> bash
 ```
 
 The script installs Docker if needed, clones the branch into `/opt/clocking`, writes `.env.local`
-with random secrets (application secret, MySQL passwords, a bootstrap administrator whose password is
-printed once) and starts the stack. Both DNS records must already point to the server: the ACME HTTP
-challenge needs ports 80 and 443 reachable on the domains. Re-run the same command to redeploy after a
-push. Manual equivalent:
+with random secrets (application secret, MySQL passwords, a bootstrap administrator whose password
+is printed once), appends the two vhost blocks to `/etc/caddy/Caddyfile` (only if missing),
+reloads Caddy and starts the stack. Manual equivalent:
 
 ```bash
 cd /opt/clocking
 docker compose --env-file .env.local -f compose.yaml -f compose.prod.yaml up -d --build
 ```
 
-Behind the proxy the application trusts the `X-Forwarded-*` headers of the Docker network
-(`TRUSTED_PROXIES`), so HTTPS is detected for secure cookies and absolute URLs.
+The stack listens on `127.0.0.1:${APP_PORT:-8090}` (app) and `127.0.0.1:${PHPMYADMIN_PORT:-8091}`
+(phpMyAdmin). The corresponding Caddy blocks are:
+
+```caddy
+clocking.example.com {
+    reverse_proxy 127.0.0.1:8090
+}
+
+phpmyadmin.clocking.example.com {
+    reverse_proxy 127.0.0.1:8091
+}
+```
+
+Behind the proxy the application trusts the `X-Forwarded-*` headers of the loopback and Docker
+networks (`TRUSTED_PROXIES`), so HTTPS is detected for secure cookies and absolute URLs.
 
 ## How the hours are computed
 

@@ -1,55 +1,22 @@
-# Production on a single host behind Traefik (HTTPS with Let's Encrypt).
+# Production overlay: exposes nginx and phpMyAdmin on loopback ports so a
+# reverse proxy already running on the host (Caddy, nginx…) can terminate TLS
+# and route the public domains.
 #
 #   docker compose -f compose.yaml -f compose.prod.yaml up -d --build
 #
 # Required in .env.local (see deploy/vps-install.sh which generates it):
 #   APP_SECRET, MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD,
-#   APP_DOMAIN=clocking.alpinecode.tech, PMA_DOMAIN=phpmyadmin.clocking.alpinecode.tech,
-#   ACME_EMAIL=you@example.com (Let's Encrypt account), APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD (bootstrap admin).
+#   APP_DOMAIN=clocking.example.com, PMA_DOMAIN=phpmyadmin.clocking.example.com,
+#   APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD (bootstrap admin).
 #
-# Both domains must point to this host's public IP before the first start,
-# otherwise the ACME HTTP challenge fails and Traefik serves a self-signed certificate.
+# The host reverse proxy must forward:
+#   ${APP_DOMAIN}  →  127.0.0.1:${APP_PORT:-8090}
+#   ${PMA_DOMAIN}  →  127.0.0.1:${PHPMYADMIN_PORT:-8091}
 
 services:
-  traefik:
-    image: traefik:v3.3
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.websecure.address=:443
-      - --entrypoints.websecure.http.tls.certresolver=letsencrypt
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?Set ACME_EMAIL in .env.local}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-      - --log.level=INFO
-      - --accesslog=true
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-letsencrypt:/letsencrypt
-    restart: unless-stopped
-
   nginx:
-    # Traefik terminates TLS and routes the app domain here; no host port needed.
-    ports: !reset []
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.clocking.rule: Host(`${APP_DOMAIN:?Set APP_DOMAIN in .env.local}`)
-      traefik.http.routers.clocking.entrypoints: websecure
-      traefik.http.routers.clocking.tls.certresolver: letsencrypt
-      traefik.http.services.clocking.loadbalancer.server.port: "80"
-      # security headers
-      traefik.http.middlewares.clocking-headers.headers.stsSeconds: "31536000"
-      traefik.http.middlewares.clocking-headers.headers.stsIncludeSubdomains: "true"
-      traefik.http.middlewares.clocking-headers.headers.contentTypeNosniff: "true"
-      traefik.http.middlewares.clocking-headers.headers.frameDeny: "true"
-      traefik.http.middlewares.clocking-headers.headers.referrerPolicy: strict-origin-when-cross-origin
-      traefik.http.routers.clocking.middlewares: clocking-headers
+    ports: !override
+      - "127.0.0.1:${APP_PORT:-8090}:80"
 
   php:
     environment:
@@ -58,15 +25,7 @@ services:
       TRUSTED_PROXIES: 127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 
   phpmyadmin:
-    ports: !reset []
+    ports: !override
+      - "127.0.0.1:${PHPMYADMIN_PORT:-8091}:80"
     environment:
       PMA_ABSOLUTE_URI: https://${PMA_DOMAIN:?Set PMA_DOMAIN in .env.local}/
-    labels:
-      traefik.enable: "true"
-      traefik.http.routers.phpmyadmin.rule: Host(`${PMA_DOMAIN:?Set PMA_DOMAIN in .env.local}`)
-      traefik.http.routers.phpmyadmin.entrypoints: websecure
-      traefik.http.routers.phpmyadmin.tls.certresolver: letsencrypt
-      traefik.http.services.phpmyadmin.loadbalancer.server.port: "80"
-
-volumes:
-  traefik-letsencrypt:
